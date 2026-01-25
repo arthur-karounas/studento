@@ -155,9 +155,9 @@
     </div>
 
     <!-- TEACHER DASHBOARD -->
-    <div id="screen-teacher-dash" class="screen hidden min-h-screen flex flex-col md:flex-row">
+    <div id="screen-teacher-dash" class="screen hidden min-h-screen md:h-screen md:overflow-hidden flex flex-col md:flex-row">
         <!-- Desktop Sidebar -->
-        <aside class="desktop-sidebar w-80 bg-white border-r border-slate-100 p-8 flex flex-col shrink-0">
+        <aside class="desktop-sidebar w-80 bg-white border-r border-slate-100 p-8 flex flex-col shrink-0 overflow-y-auto">
             <div class="flex items-center gap-3 mb-12 px-2 font-black text-2xl text-indigo-600 italic">
                 <div class="bg-indigo-600 p-2 rounded-lg text-white not-italic shadow-lg shadow-indigo-100">
                     <i data-lucide="graduation-cap" class="w-5 h-5"></i>
@@ -210,7 +210,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <input type="text" id="new-name" class="px-6 py-4 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-400 outline-none font-bold" placeholder="Имя Фамилия">
                         <input type="text" id="new-phrase" class="px-6 py-4 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-400 outline-none font-bold" placeholder="3 слова пароля">
-                        <button onclick="app.createStudent()" class="py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-indigo-600 transition-all">Зачислить</button>
+                        <button onclick="app.createStudent()" class="py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-indigo-600 transition-all">Добавить</button>
                     </div>
                 </div>
                 <div id="student-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
@@ -253,9 +253,22 @@
                                     <button onclick="app.nextWizardStep(3)" class="flex-[2] py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-lg">Далее</button>
                                 </div>
                             </div>
-                            <div id="wizard-step-3" class="hidden space-y-8 max-w-xl mx-auto text-center">
-                                <input type="datetime-local" id="task-deadline" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 text-center font-bold">
-                                <div class="flex gap-3">
+                            <div id="wizard-step-3" class="hidden space-y-8 max-w-xl mx-auto">
+                                <div class="space-y-6">
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-400 mb-2 ml-2 uppercase tracking-wide">Дата публикации</label>
+                                        <div class="relative">
+                                            <input type="text" onfocus="(this.type='datetime-local')" onblur="if(!this.value)this.type='text'" id="task-publish-date" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 font-bold text-slate-700" placeholder="Выберите дату и время">
+                                            <div class="text-xs text-slate-400 mt-2 ml-2">Оставьте пустым, чтобы опубликовать сейчас</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-400 mb-2 ml-2 uppercase tracking-wide">Крайний срок сдачи</label>
+                                        <input type="text" onfocus="(this.type='datetime-local')" onblur="if(!this.value)this.type='text'" id="task-deadline" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 font-bold text-slate-700" placeholder="Выберите дату и время">
+                                    </div>
+                                </div>
+                                
+                                <div class="flex gap-3 pt-4">
                                     <button onclick="app.nextWizardStep(2)" class="flex-1 py-5 bg-slate-100 text-slate-600 rounded-2xl font-bold">Назад</button>
                                     <button onclick="app.assignTask()" class="flex-[2] py-5 bg-emerald-500 text-white rounded-2xl font-black shadow-xl">Опубликовать</button>
                                 </div>
@@ -287,8 +300,8 @@
     </div>
 
     <!-- STUDENT DASHBOARD -->
-    <div id="screen-student-dash" class="screen hidden min-h-screen flex flex-col md:flex-row">
-        <aside class="desktop-sidebar w-80 bg-white border-r border-slate-100 p-8 flex flex-col shrink-0">
+    <div id="screen-student-dash" class="screen hidden min-h-screen md:h-screen md:overflow-hidden flex flex-col md:flex-row">
+        <aside class="desktop-sidebar w-80 bg-white border-r border-slate-100 p-8 flex flex-col shrink-0 overflow-y-auto">
             <div class="flex items-center gap-3 mb-12 font-black text-2xl uppercase tracking-widest text-amber-600 italic"><i data-lucide="backpack"></i> Studento</div>
             <nav class="flex-grow">
                 <div class="student-active-tab px-6 py-4 rounded-2xl font-black flex items-center gap-4 shadow-sm"><i data-lucide="book-open"></i> Мои уроки</div>
@@ -309,7 +322,7 @@
             <div class="flex flex-col items-center gap-1 p-3 text-slate-700 font-black text-[10px]"><span id="mob-student-score" class="text-lg">0</span> баллов</div>
             <button onclick="app.logout()" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px]"><i data-lucide="log-out"></i> Выход</button>
         </nav>
-        <main class="main-content flex-grow p-6 md:p-12 bg-[#F8FAFC]">
+        <main class="main-content flex-grow p-6 md:p-12 overflow-y-auto bg-[#F8FAFC]">
             <h2 class="text-3xl md:text-4xl font-black mb-8 text-slate-800">Уроки</h2>
             <div id="student-tasks-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
         </main>
@@ -448,14 +461,23 @@
                 const text = document.getElementById('task-text').value;
                 const answer = document.getElementById('task-answer').value.trim().toLowerCase();
                 const deadlineVal = document.getElementById('task-deadline').value;
+                const publishVal = document.getElementById('task-publish-date').value;
                 const checked = document.querySelectorAll('.student-checkbox:checked');
+                
                 if (!text || !answer || !deadlineVal || checked.length === 0) return notify("Заполните всё", "error");
+                
                 const groupId = Date.now().toString();
+                // Если дата публикации не указана, публикуем сейчас
+                const publishAt = publishVal ? Timestamp.fromDate(new Date(publishVal)) : Timestamp.now();
+                const deadline = Timestamp.fromDate(new Date(deadlineVal));
+
                 try {
                     const promises = Array.from(checked).map(cb => {
                         return addDoc(getColPath('tasks'), {
                             groupId, teacherId: auth.currentUser.uid, studentId: cb.value, studentName: cb.dataset.name,
-                            question: text, correctAnswer: answer, deadline: Timestamp.fromDate(new Date(deadlineVal)),
+                            question: text, correctAnswer: answer, 
+                            deadline: deadline,
+                            publishAt: publishAt,
                             status: 'assigned', score: 0, createdAt: Date.now()
                         });
                     });
@@ -478,6 +500,8 @@
                 const group = groupedTasks.find(g => g.groupId === groupId);
                 if (!group) return;
                 const content = document.getElementById('modal-content');
+                const publishDate = group.publishAt ? formatDate(group.publishAt.toDate()) : 'Сразу';
+
                 content.innerHTML = `
                     <div class="space-y-6">
                         <div class="flex items-center gap-4">
@@ -498,16 +522,23 @@
                                 <div class="text-[10px] font-black uppercase text-amber-500 mb-1 tracking-widest">Дедлайн</div>
                                 <div class="text-lg font-black text-amber-700">${formatDate(group.deadline.toDate())}</div>
                             </div>
+                            <div class="bg-slate-50 p-5 rounded-3xl border border-slate-100 col-span-1 md:col-span-2">
+                                <div class="text-[10px] font-black uppercase text-slate-400 mb-1 tracking-widest">Публикация</div>
+                                <div class="text-base font-bold text-slate-600">${publishDate}</div>
+                            </div>
                         </div>
 
                         <div class="space-y-3 pt-4">
                             <div class="text-[10px] font-black uppercase text-slate-400 mb-1 tracking-widest ml-2">Список учеников</div>
                             ${group.items.map(item => `
-                                <div class="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl">
-                                    <div class="font-bold text-slate-800">${item.studentName}</div>
-                                    <div class="text-xs font-black ${item.status === 'completed' ? 'text-emerald-500' : 'text-slate-300'}">
-                                        ${item.status === 'completed' ? `Сдано (${item.score} б.)` : 'Ожидает'}
+                                <div class="flex flex-col p-4 bg-white border border-slate-100 rounded-2xl">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="font-bold text-slate-800">${item.studentName}</div>
+                                        <div class="text-xs font-black ${item.status === 'completed' ? 'text-emerald-500' : 'text-slate-300'}">
+                                            ${item.status === 'completed' ? `Сдано (${item.score} б.)` : 'Ожидает'}
+                                        </div>
                                     </div>
+                                    ${item.status === 'completed' ? `<div class="text-sm bg-slate-50 p-3 rounded-xl text-slate-600"><span class="font-bold text-slate-400 text-xs uppercase mr-2">Ответ:</span> ${item.studentAnswer}</div>` : ''}
                                 </div>
                             `).join('')}
                         </div>
@@ -611,10 +642,15 @@
                 const total = g.items.length;
                 const done = g.items.filter(i => i.status === 'completed').length;
                 const prc = Math.round((done / total) * 100);
+                // Проверяем, в будущем ли публикация
+                const isScheduled = g.publishAt && g.publishAt.toMillis() > Date.now();
+                const icon = isScheduled ? '<i data-lucide="clock" class="w-4 h-4 text-amber-500"></i>' : '';
+
                 html += `
-                    <div class="task-card bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm cursor-pointer" onclick="app.showTaskDetails('${g.groupId}')">
+                    <div class="task-card bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm cursor-pointer relative" onclick="app.showTaskDetails('${g.groupId}')">
+                        ${isScheduled ? '<div class="absolute top-6 right-14 bg-amber-50 text-amber-600 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider">План</div>' : ''}
                         <div class="flex justify-between items-start mb-4">
-                            <div class="text-[10px] text-slate-400 font-black uppercase">Срок: ${formatDate(g.deadline.toDate())}</div>
+                            <div class="text-[10px] text-slate-400 font-black uppercase">Дедлайн: ${formatDate(g.deadline.toDate())}</div>
                             <button onclick="event.stopPropagation(); app.deleteTaskGroup('${g.groupId}')" class="text-slate-200 hover:text-rose-500"><i data-lucide="x" class="w-5 h-5"></i></button>
                         </div>
                         <h4 class="font-black text-slate-800 text-lg mb-4 line-clamp-2">${g.question}</h4>
@@ -687,10 +723,28 @@
             if (!currentStudentId) return;
             const snap = await getDocs(getColPath('tasks'));
             const container = document.getElementById('student-tasks-list');
-            const tasks = snap.docs.map(d => ({id: d.id, ...d.data()})).filter(t => t.studentId === currentStudentId).sort((a, b) => b.createdAt - a.createdAt);
+            const now = Date.now();
+            
+            // Фильтруем задания: только для этого студента И время публикации уже наступило (или его нет)
+            const tasks = snap.docs.map(d => ({id: d.id, ...d.data()}))
+                .filter(t => t.studentId === currentStudentId)
+                .filter(t => {
+                    // Если publishAt существует, проверяем время. Если нет, показываем сразу.
+                    if (t.publishAt) {
+                        return t.publishAt.toMillis() <= now;
+                    }
+                    return true;
+                })
+                .sort((a, b) => b.createdAt - a.createdAt);
+                
             const total = tasks.reduce((acc, t) => acc + (t.score || 0), 0);
             document.getElementById('student-total-score').textContent = total + " б.";
             document.getElementById('mob-student-score').textContent = total;
+
+            if (tasks.length === 0) {
+                container.innerHTML = '<div class="col-span-full py-20 text-center text-slate-300 font-bold italic">Заданий пока нет</div>';
+                return;
+            }
 
             let html = '';
             tasks.forEach(t => {

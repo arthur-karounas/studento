@@ -1,8 +1,13 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+
     <title>With Lera</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
     
@@ -10,9 +15,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <meta name="theme-color" content="#ffffff">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
     <style>
+
+        /* Весь "задник" и системные области — чисто белые */
+html {
+    background-color: #ffffff !important;
+}
+
+body {
+    background-color: #ffffff !important;
+    /* Учитываем отступ под островок, чтобы контент не налезал на часы */
+    padding-top: env(safe-area-inset-top);
+}
+
+/* Мобильный хедер: возвращаем размытие, но гарантируем белый подтон */
+.mobile-header-glass {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important; /* Для Safari */
+    /* Хедер должен учитывать safe-area, чтобы быть чуть выше на айфонах */
+    top: 0;
+    padding-top: 0; 
+}
         body { font-family: 'Inter', sans-serif; }
         body.modal-open { overflow: hidden; }
         .hidden { display: none !important; }
@@ -172,9 +196,9 @@
     <div id="screen-teacher-dash" class="screen hidden min-h-screen md:h-screen md:overflow-hidden flex flex-col md:flex-row relative">
         
         <!-- MOBILE TOP HEADER (Fixed) -->
-        <header class="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-100 z-40 flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-            <h1 id="mobile-header-title" class="font-black text-lg text-slate-800">Класс</h1>
-        </header>
+        <header class="md:hidden fixed top-0 left-0 right-0 h-16 mobile-header-glass border-b border-slate-100 z-40 flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+    <h1 id="mobile-header-title" class="font-black text-lg text-slate-800">Класс</h1>
+</header>
 
         <!-- Desktop Sidebar -->
         <aside class="desktop-sidebar w-80 bg-white border-r border-slate-100 p-8 flex flex-col shrink-0 overflow-y-auto">
@@ -323,9 +347,9 @@
     <div id="screen-student-dash" class="screen hidden min-h-screen md:h-screen md:overflow-hidden flex flex-col md:flex-row">
         
         <!-- MOBILE TOP HEADER (Fixed) -->
-        <header class="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-100 z-40 flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-            <h1 class="font-black text-lg text-slate-800">Мои уроки</h1>
-        </header>
+        <header class="md:hidden fixed top-0 left-0 right-0 h-16 mobile-header-glass border-b border-slate-100 z-40 flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+    <h1 id="mobile-header-title" class="font-black text-lg text-slate-800">Мои уроки</h1>
+</header>
 
         <aside class="desktop-sidebar w-80 bg-white border-r border-slate-100 p-8 flex flex-col shrink-0 overflow-y-auto">
             <div class="flex items-center gap-3 mb-12 font-black text-2xl uppercase tracking-widest text-amber-600 italic"><i data-lucide="backpack"></i> With Lera</div>
@@ -387,6 +411,8 @@
 
         const getColPath = (name) => collection(db, 'artifacts', appId, 'public', 'data', name);
 
+        let activeTeacherTab = 'students';
+
         window.app = {
             showScreen: (id) => {
                 document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
@@ -406,38 +432,50 @@
                 });
             },
 
-            setTeacherTab: (tab) => {
-                const tabs = ['students', 'tasks', 'stats'];
-                const titles = {
-                    students: 'Класс',
-                    tasks: 'Задания',
-                    stats: 'Аналитика'
-                };
-                
-                // Обновляем заголовок в мобильном хедере
-                const mobileTitle = document.getElementById('mobile-header-title');
-                if (mobileTitle) mobileTitle.textContent = titles[tab];
 
-                tabs.forEach(t => {
-                    const el = document.getElementById(`tab-${t}`);
-                    const isVisible = t === tab;
-                    el.classList.toggle('hidden', !isVisible);
-                    
-                    if (isVisible) {
-                        el.classList.remove('animate-slide-up');
-                        void el.offsetWidth; 
-                        el.classList.add('animate-slide-up');
-                    }
-                    
-                    document.getElementById(`tab-btn-${t}`).classList.toggle('active-tab', isVisible);
-                    document.getElementById(`mob-tab-${t}`).classList.toggle('mobile-active-tab', isVisible);
-                });
-                
-                if(tab === 'students') loadMyStudents();
-                if(tab === 'tasks') loadTeacherTasks();
-                if(tab === 'stats') loadStatistics();
-                lucide.createIcons();
-            },
+
+            setTeacherTab: (tab) => {
+    // Проверяем, не нажимаем ли мы на ту же самую вкладку
+    if (activeTeacherTab === tab && !document.getElementById(`tab-${tab}`).classList.contains('hidden')) {
+        return; // Если вкладка уже активна, ничего не делаем и выходим
+    }
+
+    const tabs = ['students', 'tasks', 'stats'];
+    const titles = {
+        students: 'Класс',
+        tasks: 'Задания',
+        stats: 'Аналитика'
+    };
+    
+    const mobileTitle = document.getElementById('mobile-header-title');
+    if (mobileTitle) mobileTitle.textContent = titles[tab];
+
+    tabs.forEach(t => {
+        const el = document.getElementById(`tab-${t}`);
+        const isVisible = t === tab;
+        
+        if (isVisible) {
+            el.classList.remove('hidden');
+            // Анимация добавится только если мы реально переключили вкладку
+            el.classList.remove('animate-slide-up');
+            void el.offsetWidth; // Магия для перезапуска анимации (Reflow)
+            el.classList.add('animate-slide-up');
+        } else {
+            el.classList.add('hidden');
+        }
+        
+        document.getElementById(`tab-btn-${t}`).classList.toggle('active-tab', isVisible);
+        document.getElementById(`mob-tab-${t}`).classList.toggle('mobile-active-tab', isVisible);
+    });
+    
+    // Запоминаем текущую вкладку
+    activeTeacherTab = tab;
+
+    if(tab === 'students') loadMyStudents();
+    if(tab === 'tasks') loadTeacherTasks();
+    if(tab === 'stats') loadStatistics();
+    lucide.createIcons();
+},
 
             toggleAddStudentForm: () => document.getElementById('add-student-form').classList.toggle('hidden'),
 

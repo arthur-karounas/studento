@@ -3,328 +3,363 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studento — Современная Школа</title>
+    <title>With Lera — Visionary Education</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        body.modal-open { overflow: hidden; }
-        .hidden { display: none !important; }
-        
-        /* Активная вкладка для десктопа */
-        .active-tab { background: #4f46e5; color: white; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2); }
-        
-        /* Активная вкладка для мобильного (нижнее меню) */
-        .mobile-active-tab { color: #4f46e5 !important; }
-        .mobile-active-tab i { transform: translateY(-4px); transition: transform 0.2s ease; }
+        :root {
+            --glass: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --accent: #6366f1;
+        }
+Ы
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: #f0f2f5;
+            overflow-x: hidden;
+            letter-spacing: -0.01em;
+        }
 
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        
+        /* Анимированный фон iOS 26 */
+        .ios-bg {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            z-index: -1;
+            background: radial-gradient(circle at 70% 30%, #e0e7ff 0%, #ffffff 50%),
+                        radial-gradient(circle at 30% 70%, #fef3c7 0%, #ffffff 50%);
+            animation: mesh 20s ease infinite alternate;
+        }
+
+        @keyframes mesh {
+            0% { transform: translate(0,0) rotate(0deg); }
+            100% { transform: translate(5%, 5%) rotate(5deg); }
+        }
+
+        .glass-panel {
+            background: var(--glass);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .active-tab {
+            background: white;
+            color: var(--accent);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transform: scale(1.02);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -5px rgba(79, 70, 229, 0.5);
+        }
+
+        .task-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .task-card:hover {
+            transform: scale(1.02) translateY(-4px);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Скрытие скроллбара */
+        ::-webkit-scrollbar { width: 0px; }
+
+        .ios-input {
+            background: rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+        .ios-input:focus {
+            background: white;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
         @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(10px); } 
+            from { opacity: 0; transform: translateY(30px); } 
             to { opacity: 1; transform: translateY(0); } 
         }
-        .animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
-        
-        .task-card:hover { transform: translateY(-2px); transition: all 0.2s ease; }
-        
-        .step-node.active { background: #4f46e5; color: white; border-color: #4f46e5; }
-        .step-node.completed { background: #10b981; color: white; border-color: #10b981; }
+        .animate-ios { animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
 
-        /* Логика для мобильного Layout (Портретный режим) */
-        @media (orientation: portrait), (max-width: 768px) {
+        @media (max-width: 768px) {
             .desktop-sidebar { display: none !important; }
-            .mobile-nav { display: flex !important; }
-            .main-content { padding-bottom: 7rem !important; padding-top: 1rem !important; padding-left: 1rem !important; padding-right: 1rem !important; }
-            .screen-header { text-align: center; }
-            
-            /* Убираем "виджетность" на мобильных для логина */
-            .login-card { 
-                background: transparent !important; 
-                box-shadow: none !important; 
-                border: none !important; 
-                padding-left: 1.5rem !important; 
-                padding-right: 1.5rem !important;
-            }
+            .main-content { padding-bottom: 8rem !important; }
         }
     </style>
 </head>
-<body class="bg-[#F8FAFC] text-slate-900 min-h-screen font-medium">
+<body class="text-slate-900 min-h-screen font-medium">
 
-    <div id="notification-container" class="fixed top-4 right-4 md:top-6 md:right-6 z-[200] flex flex-col gap-3 w-[calc(100%-2rem)] md:w-auto"></div>
+    <div class="ios-bg"></div>
+    <div id="notification-container" class="fixed top-6 right-6 z-[200] flex flex-col gap-3 w-[calc(100%-3rem)] md:w-80"></div>
 
     <!-- MODAL: CONFIRM -->
-    <div id="modal-confirm" class="fixed inset-0 z-[150] hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md"></div>
-        <div class="relative bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8">
-            <div class="flex flex-col items-center text-center">
-                <div class="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-6">
-                    <i data-lucide="alert-circle" class="w-8 h-8"></i>
-                </div>
-                <h3 class="text-2xl font-extrabold text-slate-800 mb-2">Вы уверены?</h3>
-                <p id="confirm-message" class="text-slate-500 mb-8 text-sm">Это действие нельзя будет отменить.</p>
-                <div class="flex gap-3 w-full">
-                    <button id="confirm-cancel" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">Отмена</button>
-                    <button id="confirm-ok" class="flex-1 py-4 bg-rose-500 text-white rounded-2xl font-bold hover:bg-rose-600 transition-all shadow-lg shadow-rose-200">Удалить</button>
-                </div>
+    <div id="modal-confirm" class="fixed inset-0 z-[150] hidden flex items-center justify-center p-6">
+        <div class="absolute inset-0 bg-slate-900/20 backdrop-blur-sm"></div>
+        <div class="relative glass-panel w-full max-w-sm rounded-[3rem] p-10 text-center animate-ios">
+            <div class="w-20 h-20 bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="alert-circle" class="w-10 h-10"></i>
+            </div>
+            <h3 class="text-2xl font-black text-slate-800 mb-2">Уверены?</h3>
+            <p id="confirm-message" class="text-slate-500 mb-8">Это действие необратимо.</p>
+            <div class="flex gap-4">
+                <button id="confirm-cancel" class="flex-1 py-4 glass-panel bg-white/40 rounded-2xl font-bold">Отмена</button>
+                <button id="confirm-ok" class="flex-1 py-4 bg-rose-500 text-white rounded-2xl font-bold shadow-lg shadow-rose-200">Да</button>
             </div>
         </div>
     </div>
 
     <!-- MODAL: TASK DETAILS -->
     <div id="modal-task-details" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onclick="app.closeTaskDetails()"></div>
-        <div class="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
-            <button onclick="app.closeTaskDetails()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 transition-colors z-10 bg-white rounded-full border shadow-sm">
+        <div class="absolute inset-0 bg-white/20 backdrop-blur-md" onclick="app.closeTaskDetails()"></div>
+        <div class="relative glass-panel w-full max-w-2xl rounded-[3rem] flex flex-col max-h-[85vh] overflow-hidden animate-ios">
+            <button onclick="app.closeTaskDetails()" class="absolute top-6 right-6 p-2 bg-white/50 hover:bg-white rounded-full transition-all z-10">
                 <i data-lucide="x" class="w-6 h-6"></i>
             </button>
-            <div id="modal-content" class="overflow-y-auto p-6 md:p-10"></div>
+            <div id="modal-content" class="overflow-y-auto p-10"></div>
         </div>
     </div>
 
     <!-- MAIN SCREEN -->
-    <div id="screen-main" class="min-h-screen flex flex-col items-center justify-center p-6 bg-white">
-        <div class="max-w-md w-full text-center space-y-10 animate-slide-up">
-            <div class="flex justify-center">
-                <div class="relative">
-                    <div class="absolute inset-0 bg-indigo-500 blur-2xl opacity-20 animate-pulse"></div>
-                    <div class="relative bg-indigo-600 p-6 rounded-[2rem] shadow-2xl">
-                        <i data-lucide="graduation-cap" class="text-white w-14 h-14"></i>
-                    </div>
+    <div id="screen-main" class="min-h-screen flex flex-col items-center justify-center p-8">
+        <div class="max-w-md w-full text-center space-y-12 animate-ios">
+            <div class="relative inline-block">
+                <div class="absolute inset-0 bg-indigo-500 blur-3xl opacity-30 animate-pulse"></div>
+                <div class="relative glass-panel p-8 rounded-[3rem] shadow-2xl">
+                    <i data-lucide="graduation-cap" class="text-indigo-600 w-16 h-16"></i>
                 </div>
             </div>
             <div>
-                <h1 class="text-5xl font-black tracking-tight text-slate-900 mb-4">Studento</h1>
-                <p class="text-slate-500 text-lg leading-relaxed px-4">Удобная и простая среда для преподавателей и учеников</p>
+                <h1 class="text-6xl font-black tracking-tighter text-slate-900 mb-4">With Lera</h1>
+                <p class="text-slate-500 text-lg font-semibold opacity-70">Будущее образования уже здесь</p>
             </div>
-            <div class="space-y-4 px-2">
-                <button onclick="app.showScreen('screen-teacher-login')" class="w-full py-5 rounded-2xl bg-indigo-600 text-white text-lg font-bold hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 flex items-center justify-center gap-3 group">
-                    Учитель <i data-lucide="chevron-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+            <div class="grid gap-4">
+                <button onclick="app.showScreen('screen-teacher-login')" class="btn-primary w-full py-6 rounded-3xl text-white text-xl font-black flex items-center justify-center gap-3">
+                    Учитель <i data-lucide="arrow-right" class="w-6 h-6"></i>
                 </button>
-                <button onclick="app.showScreen('screen-student-login')" class="w-full py-5 rounded-2xl bg-white border-2 border-slate-100 text-slate-700 text-lg font-bold hover:border-amber-400 transition-all">
+                <button onclick="app.showScreen('screen-student-login')" class="w-full py-6 glass-panel rounded-3xl text-slate-700 text-xl font-black hover:bg-white transition-all">
                     Ученик
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- LOGIN SCREENS -->
-    <div id="screen-teacher-login" class="screen hidden min-h-screen flex items-center justify-center p-0 md:p-6 bg-white md:bg-[#F8FAFC]">
-        <div class="login-card max-w-sm w-full bg-white rounded-[2.5rem] p-8 md:p-10 md:shadow-2xl md:border md:border-slate-50 animate-slide-up">
-            <button onclick="app.showScreen('screen-main')" class="text-slate-400 hover:text-indigo-600 mb-10 flex items-center gap-2 text-sm font-extrabold transition-colors">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i> В начало
+    <!-- LOGIN: TEACHER -->
+    <div id="screen-teacher-login" class="screen hidden min-h-screen flex items-center justify-center p-6">
+        <div class="glass-panel max-w-sm w-full rounded-[3.5rem] p-10 animate-ios">
+            <button onclick="app.showScreen('screen-main')" class="text-slate-400 hover:text-indigo-600 mb-10 flex items-center gap-2 font-bold transition-all">
+                <i data-lucide="chevron-left" class="w-5 h-5"></i> Назад
             </button>
             <div class="mb-10">
-                <h2 class="text-4xl font-black text-slate-800 tracking-tight">Учитель</h2>
-                <p class="text-slate-400 mt-2 font-semibold">Войдите в личный кабинет</p>
+                <h2 class="text-4xl font-black text-slate-900 tracking-tight">Вход</h2>
+                <p class="text-slate-400 font-bold mt-1">Личный кабинет преподавателя</p>
             </div>
-            <div class="space-y-5">
-                <input type="email" id="t-email" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none font-bold placeholder:text-slate-300" placeholder="Email">
-                <input type="password" id="t-password" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none font-bold placeholder:text-slate-300" placeholder="Пароль">
-                <div class="pt-4 space-y-3">
-                    <button onclick="app.teacherLogin()" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-[0.98]">Войти в систему</button>
-                    <button onclick="app.teacherRegister()" class="w-full py-4 text-indigo-600 font-bold hover:bg-indigo-50 rounded-2xl transition-all">Нет аккаунта? Создать</button>
+            <div class="space-y-4">
+                <input type="email" id="t-email" class="ios-input w-full px-6 py-5 rounded-2xl outline-none font-bold" placeholder="Email">
+                <input type="password" id="t-password" class="ios-input w-full px-6 py-5 rounded-2xl outline-none font-bold" placeholder="Пароль">
+                <div class="pt-6 space-y-3">
+                    <button onclick="app.teacherLogin()" class="btn-primary w-full py-5 text-white rounded-3xl font-black">Войти</button>
+                    <button onclick="app.teacherRegister()" class="w-full py-4 text-indigo-600 font-bold">Регистрация</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="screen-student-login" class="screen hidden min-h-screen flex items-center justify-center p-0 md:p-6 bg-white md:bg-[#F8FAFC]">
-        <div class="login-card max-w-sm w-full bg-white rounded-[2.5rem] p-8 md:p-10 md:shadow-2xl md:border md:border-slate-50 animate-slide-up text-center">
-            <button onclick="app.showScreen('screen-main')" class="text-slate-400 hover:text-amber-600 mb-10 flex items-center gap-2 text-sm font-extrabold transition-colors mx-auto">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i> Назад
-            </button>
+    <!-- LOGIN: STUDENT -->
+    <div id="screen-student-login" class="screen hidden min-h-screen flex items-center justify-center p-6 text-center">
+        <div class="glass-panel max-w-sm w-full rounded-[3.5rem] p-10 animate-ios">
+            <button onclick="app.showScreen('screen-main')" class="text-slate-400 mb-10 inline-flex items-center gap-2 font-bold"><i data-lucide="chevron-left" class="w-5 h-5"></i> Назад</button>
             <div class="mb-10">
-                <div class="w-20 h-20 bg-amber-50 text-amber-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
-                    <i data-lucide="key-round" class="w-10 h-10"></i>
+                <div class="w-20 h-20 glass-panel bg-amber-500/10 text-amber-500 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="key" class="w-10 h-10"></i>
                 </div>
-                <h2 class="text-4xl font-black text-slate-800 tracking-tight">Привет!</h2>
-                <p class="text-slate-400 mt-2 font-semibold leading-relaxed">Введи свои три секретных слова, чтобы открыть портфель</p>
+                <h2 class="text-4xl font-black text-slate-900 tracking-tight">Привет!</h2>
+                <p class="text-slate-400 font-bold mt-2 leading-relaxed">Введи свои 3 секретных слова</p>
             </div>
             <div class="space-y-6">
-                <input type="text" id="s-phrase" class="w-full px-6 py-6 rounded-2xl border-2 border-slate-100 focus:border-amber-400 text-center font-black text-xl outline-none transition-all placeholder:font-bold placeholder:text-slate-200" placeholder="слово слово слово">
-                <button onclick="app.studentLogin()" class="w-full py-5 bg-amber-500 text-white rounded-2xl font-black shadow-xl shadow-amber-100 hover:bg-amber-600 transition-all active:scale-[0.98]">Войти в кабинет</button>
+                <input type="text" id="s-phrase" class="ios-input w-full px-6 py-6 rounded-3xl text-center font-black text-xl outline-none" placeholder="слово слово слово">
+                <button onclick="app.studentLogin()" class="btn-primary !from-amber-500 !to-orange-500 w-full py-5 text-white rounded-3xl font-black">Открыть портфель</button>
             </div>
         </div>
     </div>
 
     <!-- TEACHER DASHBOARD -->
-    <div id="screen-teacher-dash" class="screen hidden min-h-screen md:h-screen md:overflow-hidden flex flex-col md:flex-row">
-        <!-- Desktop Sidebar -->
-        <aside class="desktop-sidebar w-80 bg-white border-r border-slate-100 p-8 flex flex-col shrink-0 overflow-y-auto">
-            <div class="flex items-center gap-3 mb-12 px-2 font-black text-2xl text-indigo-600 italic">
-                <div class="bg-indigo-600 p-2 rounded-lg text-white not-italic shadow-lg shadow-indigo-100">
-                    <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+    <div id="screen-teacher-dash" class="screen hidden min-h-screen flex flex-col md:flex-row">
+        <!-- Sidebar -->
+        <aside class="desktop-sidebar w-80 p-6 flex flex-col shrink-0">
+            <div class="glass-panel h-full rounded-[3rem] p-8 flex flex-col shadow-xl">
+                <div class="flex items-center gap-3 mb-12 font-black text-2xl text-indigo-600 italic px-2">
+                    <div class="bg-indigo-600 p-2 rounded-xl text-white not-italic shadow-lg shadow-indigo-100">
+                        <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+                    </div>
+                    With Lera
                 </div>
-                Studento
+                <nav class="space-y-4 flex-grow">
+                    <button onclick="app.setTeacherTab('students')" id="tab-btn-students" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold text-slate-400 hover:text-indigo-600 active-tab">
+                        <i data-lucide="users" class="w-5 h-5"></i> Класс
+                    </button>
+                    <button onclick="app.setTeacherTab('tasks')" id="tab-btn-tasks" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold text-slate-400 hover:text-indigo-600">
+                        <i data-lucide="layers" class="w-5 h-5"></i> Задания
+                    </button>
+                    <button onclick="app.setTeacherTab('stats')" id="tab-btn-stats" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold text-slate-400 hover:text-indigo-600">
+                        <i data-lucide="pie-chart" class="w-5 h-5"></i> Отчеты
+                    </button>
+                </nav>
+                <button onclick="app.logout()" class="mt-auto flex items-center gap-4 px-6 py-4 rounded-2xl text-rose-500 font-bold hover:bg-rose-50 transition-all">
+                    <i data-lucide="log-out" class="w-5 h-5"></i> Выйти
+                </button>
             </div>
-            <nav class="flex-grow space-y-3">
-                <button onclick="app.setTeacherTab('students')" id="tab-btn-students" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold text-slate-400 active-tab">
-                    <i data-lucide="users" class="w-5 h-5"></i> Класс
-                </button>
-                <button onclick="app.setTeacherTab('tasks')" id="tab-btn-tasks" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold text-slate-400 hover:bg-slate-50">
-                    <i data-lucide="clipboard-list" class="w-5 h-5"></i> Задания
-                </button>
-                <button onclick="app.setTeacherTab('stats')" id="tab-btn-stats" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold text-slate-400 hover:bg-slate-50">
-                    <i data-lucide="bar-chart-2" class="w-5 h-5"></i> Аналитика
-                </button>
-            </nav>
-            <button onclick="app.logout()" class="mt-auto flex items-center gap-4 px-6 py-4 rounded-2xl text-rose-500 font-bold hover:bg-rose-50 transition-colors">
-                <i data-lucide="log-out" class="w-5 h-5"></i> Выйти
-            </button>
         </aside>
 
-        <!-- Mobile Bottom Nav -->
-        <nav class="mobile-nav hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-50 flex flex-row justify-around items-center p-2 pb-6 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
-            <button onclick="app.setTeacherTab('students')" id="mob-tab-students" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px] mobile-active-tab">
-                <i data-lucide="users" class="w-6 h-6"></i> Класс
-            </button>
-            <button onclick="app.setTeacherTab('tasks')" id="mob-tab-tasks" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px]">
-                <i data-lucide="clipboard-list" class="w-6 h-6"></i> Задания
-            </button>
-            <button onclick="app.setTeacherTab('stats')" id="mob-tab-stats" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px]">
-                <i data-lucide="bar-chart-2" class="w-6 h-6"></i> Аналитика
-            </button>
-            <button onclick="app.logout()" class="flex flex-col items-center gap-1 p-3 text-rose-400 font-black text-[10px]">
-                <i data-lucide="log-out" class="w-6 h-6"></i> Выход
-            </button>
+        <!-- Mobile Nav -->
+        <nav class="mobile-nav hidden fixed bottom-6 left-6 right-6 z-50">
+            <div class="glass-panel rounded-[2.5rem] flex justify-around p-3 shadow-2xl border-white/50">
+                <button onclick="app.setTeacherTab('students')" id="mob-tab-students" class="p-4 text-slate-400 mobile-active-tab"><i data-lucide="users"></i></button>
+                <button onclick="app.setTeacherTab('tasks')" id="mob-tab-tasks" class="p-4 text-slate-400"><i data-lucide="layers"></i></button>
+                <button onclick="app.setTeacherTab('stats')" id="mob-tab-stats" class="p-4 text-slate-400"><i data-lucide="pie-chart"></i></button>
+                <button onclick="app.logout()" class="p-4 text-rose-400"><i data-lucide="log-out"></i></button>
+            </div>
         </nav>
 
-        <main class="main-content flex-grow p-6 md:p-12 overflow-y-auto bg-[#F8FAFC]">
+        <main class="main-content flex-grow p-6 md:p-12 overflow-y-auto">
             <!-- TAB: STUDENTS -->
             <section id="tab-students" class="hidden">
-                <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-10 screen-header">
-                    <h2 class="text-3xl md:text-4xl font-black text-slate-800">Класс</h2>
-                    <button onclick="app.toggleAddStudentForm()" class="w-full md:w-auto bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
-                        <i data-lucide="user-plus" class="w-5 h-5"></i> Добавить ученика
+                <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+                    <h2 class="text-5xl font-black text-slate-900 tracking-tighter">Класс</h2>
+                    <button onclick="app.toggleAddStudentForm()" class="btn-primary px-8 py-5 rounded-3xl text-white font-black flex items-center gap-3">
+                        <i data-lucide="plus" class="w-6 h-6"></i> Ученик
                     </button>
                 </div>
-                <div id="add-student-form" class="hidden mb-10 bg-white p-6 md:p-8 rounded-[2rem] border-2 border-indigo-100 shadow-sm">
-                    <h3 class="font-black text-xl mb-6">Новый ученик</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <input type="text" id="new-name" class="px-6 py-4 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-400 outline-none font-bold" placeholder="Имя Фамилия">
-                        <input type="text" id="new-phrase" class="px-6 py-4 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-400 outline-none font-bold" placeholder="3 слова пароля">
-                        <button onclick="app.createStudent()" class="py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-indigo-600 transition-all">Добавить</button>
+                <div id="add-student-form" class="hidden mb-12 animate-ios">
+                    <div class="glass-panel p-10 rounded-[3rem]">
+                        <h3 class="font-black text-2xl mb-8">Новый профиль</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <input type="text" id="new-name" class="ios-input px-6 py-5 rounded-2xl font-bold outline-none" placeholder="Имя Фамилия">
+                            <input type="text" id="new-phrase" class="ios-input px-6 py-5 rounded-2xl font-bold outline-none" placeholder="3 секретных слова">
+                            <button onclick="app.createStudent()" class="btn-primary py-5 text-white rounded-2xl font-black">Создать</button>
+                        </div>
                     </div>
                 </div>
-                <div id="student-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                <div id="student-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
             </section>
 
             <!-- TAB: TASKS -->
             <section id="tab-tasks" class="hidden">
-                <div class="flex flex-col lg:flex-row justify-between lg:items-center gap-6 mb-10 screen-header">
-                    <div>
-                        <h2 class="text-3xl md:text-4xl font-black text-slate-800">Задания</h2>
-                        <p class="text-slate-500 mt-1 font-medium">Рассылка материалов</p>
-                    </div>
-                    <button onclick="app.openNewTaskForm()" class="bg-indigo-600 text-white px-8 py-5 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100">
-                        <i data-lucide="plus-circle" class="w-6 h-6"></i> Новое задание
+                <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+                    <h2 class="text-5xl font-black text-slate-900 tracking-tighter">Задания</h2>
+                    <button onclick="app.openNewTaskForm()" class="btn-primary px-8 py-5 rounded-3xl text-white font-black flex items-center gap-3">
+                        <i data-lucide="file-plus" class="w-6 h-6"></i> Новое
                     </button>
                 </div>
-                <div id="task-creation-wizard" class="hidden mb-12">
-                    <div class="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100">
-                        <div class="bg-slate-900 px-6 py-5 md:px-10 md:py-6 flex justify-between items-center">
-                            <h3 class="text-white font-bold">Конструктор задания</h3>
-                            <button onclick="app.closeNewTaskForm()" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
-                        </div>
-                        <div class="p-6 md:p-10">
-                            <div class="flex items-center justify-between mb-10 max-w-md mx-auto relative">
-                                <div class="absolute h-1 bg-slate-100 top-1/2 left-0 right-0 -translate-y-1/2 z-0"></div>
-                                <div id="step-line-1" class="absolute h-1 bg-indigo-500 top-1/2 left-0 w-0 -translate-y-1/2 z-0 transition-all duration-500"></div>
-                                <div class="step-node active relative z-10 w-10 h-10 rounded-full border-4 border-white bg-slate-100 flex items-center justify-center font-black shadow-md" id="node-1">1</div>
-                                <div class="step-node relative z-10 w-10 h-10 rounded-full border-4 border-white bg-slate-100 flex items-center justify-center font-black shadow-md" id="node-2">2</div>
-                                <div class="step-node relative z-10 w-10 h-10 rounded-full border-4 border-white bg-slate-100 flex items-center justify-center font-black shadow-md" id="node-3">3</div>
+
+                <div id="task-creation-wizard" class="hidden mb-12 animate-ios">
+                    <div class="glass-panel rounded-[3.5rem] overflow-hidden shadow-2xl">
+                        <div class="p-12">
+                             <div class="flex items-center justify-between mb-12 max-w-sm mx-auto relative">
+                                <div class="absolute h-1 bg-black/5 top-1/2 left-0 right-0 -translate-y-1/2 rounded-full"></div>
+                                <div id="step-line-1" class="absolute h-1 bg-indigo-500 top-1/2 left-0 w-0 -translate-y-1/2 transition-all duration-700 rounded-full"></div>
+                                <div class="w-10 h-10 rounded-full bg-white border-4 border-white shadow-lg flex items-center justify-center font-black text-xs z-10" id="node-1">1</div>
+                                <div class="w-10 h-10 rounded-full bg-white border-4 border-white shadow-lg flex items-center justify-center font-black text-xs z-10" id="node-2">2</div>
+                                <div class="w-10 h-10 rounded-full bg-white border-4 border-white shadow-lg flex items-center justify-center font-black text-xs z-10" id="node-3">3</div>
                             </div>
+
                             <div id="wizard-step-1" class="space-y-6 max-w-xl mx-auto">
-                                <textarea id="task-text" rows="4" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none font-medium text-lg resize-none" placeholder="Что нужно сделать?"></textarea>
-                                <input type="text" id="task-answer" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none font-bold" placeholder="Эталонный ответ">
-                                <button onclick="app.nextWizardStep(2)" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-lg">Далее</button>
+                                <textarea id="task-text" rows="4" class="ios-input w-full px-8 py-6 rounded-[2rem] font-bold text-xl outline-none resize-none" placeholder="Условие задания..."></textarea>
+                                <input type="text" id="task-answer" class="ios-input w-full px-8 py-6 rounded-2xl font-bold outline-none" placeholder="Правильный ответ">
+                                <button onclick="app.nextWizardStep(2)" class="btn-primary w-full py-6 text-white rounded-3xl font-black">Далее</button>
                             </div>
+
                             <div id="wizard-step-2" class="hidden space-y-6 max-w-2xl mx-auto">
-                                <div id="student-checklist" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1"></div>
-                                <div class="flex gap-3">
-                                    <button onclick="app.nextWizardStep(1)" class="flex-1 py-5 bg-slate-100 text-slate-600 rounded-2xl font-bold">Назад</button>
-                                    <button onclick="app.nextWizardStep(3)" class="flex-[2] py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-lg">Далее</button>
+                                <div id="student-checklist" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[350px] overflow-y-auto p-2"></div>
+                                <div class="flex gap-4">
+                                    <button onclick="app.nextWizardStep(1)" class="flex-1 py-6 glass-panel rounded-3xl font-bold">Назад</button>
+                                    <button onclick="app.nextWizardStep(3)" class="btn-primary flex-[2] py-6 text-white rounded-3xl font-black">Далее</button>
                                 </div>
                             </div>
+
                             <div id="wizard-step-3" class="hidden space-y-8 max-w-xl mx-auto">
-                                <div class="space-y-6">
-                                    <div>
-                                        <label class="block text-sm font-bold text-slate-400 mb-2 ml-2 uppercase tracking-wide">Дата публикации</label>
-                                        <div class="relative">
-                                            <input type="text" onfocus="(this.type='datetime-local')" onblur="if(!this.value)this.type='text'" id="task-publish-date" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 font-bold text-slate-700" placeholder="Выберите дату и время">
-                                            <div class="text-xs text-slate-400 mt-2 ml-2">Оставьте пустым, чтобы опубликовать сейчас</div>
-                                        </div>
+                                <div class="space-y-4">
+                                    <div class="p-2">
+                                        <label class="block text-[10px] font-black uppercase text-slate-400 mb-2 ml-4">Когда опубликовать?</label>
+                                        <input type="datetime-local" id="task-publish-date" class="ios-input w-full px-8 py-5 rounded-2xl font-bold">
                                     </div>
-                                    <div>
-                                        <label class="block text-sm font-bold text-slate-400 mb-2 ml-2 uppercase tracking-wide">Крайний срок сдачи</label>
-                                        <input type="text" onfocus="(this.type='datetime-local')" onblur="if(!this.value)this.type='text'" id="task-deadline" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 font-bold text-slate-700" placeholder="Выберите дату и время">
+                                    <div class="p-2">
+                                        <label class="block text-[10px] font-black uppercase text-slate-400 mb-2 ml-4">Крайний срок</label>
+                                        <input type="datetime-local" id="task-deadline" class="ios-input w-full px-8 py-5 rounded-2xl font-bold">
                                     </div>
                                 </div>
-                                
-                                <div class="flex gap-3 pt-4">
-                                    <button onclick="app.nextWizardStep(2)" class="flex-1 py-5 bg-slate-100 text-slate-600 rounded-2xl font-bold">Назад</button>
-                                    <button onclick="app.assignTask()" class="flex-[2] py-5 bg-emerald-500 text-white rounded-2xl font-black shadow-xl">Опубликовать</button>
+                                <div class="flex gap-4">
+                                    <button onclick="app.nextWizardStep(2)" class="flex-1 py-6 glass-panel rounded-3xl font-bold">Назад</button>
+                                    <button onclick="app.assignTask()" class="btn-primary !from-emerald-500 !to-teal-600 flex-[2] py-6 text-white rounded-3xl font-black">Опубликовать</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div id="teacher-tasks-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+                <div id="teacher-tasks-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"></div>
             </section>
 
             <!-- TAB: STATS -->
             <section id="tab-stats" class="hidden">
-                <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-10 screen-header">
-                    <div>
-                        <h2 class="text-3xl md:text-4xl font-black text-slate-800">Успеваемость</h2>
-                        <p class="text-slate-500 mt-1 font-medium">Анализ активности и прогресса класса</p>
-                    </div>
-                </div>
-                <div id="quick-stats" class="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-10"></div>
-                <div class="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-slate-100">
-                    <div class="h-[300px] md:h-[450px] mb-12"><canvas id="statsChart"></canvas></div>
-                    <div class="border-t border-slate-50 pt-10">
-                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 ml-2">Рейтинг учеников</h3>
-                        <div id="stats-summary" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"></div>
-                    </div>
+                <h2 class="text-5xl font-black text-slate-900 tracking-tighter mb-12">Успеваемость</h2>
+                <div id="quick-stats" class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12"></div>
+                <div class="glass-panel rounded-[3.5rem] p-12 shadow-sm">
+                    <div class="h-[400px] mb-12"><canvas id="statsChart"></canvas></div>
+                    <div id="stats-summary" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 border-t border-black/5 pt-12"></div>
                 </div>
             </section>
         </main>
     </div>
 
     <!-- STUDENT DASHBOARD -->
-    <div id="screen-student-dash" class="screen hidden min-h-screen md:h-screen md:overflow-hidden flex flex-col md:flex-row">
-        <aside class="desktop-sidebar w-80 bg-white border-r border-slate-100 p-8 flex flex-col shrink-0 overflow-y-auto">
-            <div class="flex items-center gap-3 mb-12 font-black text-2xl uppercase tracking-widest text-amber-600 italic"><i data-lucide="backpack"></i> Studento</div>
-            <nav class="flex-grow">
-                <div class="student-active-tab px-6 py-4 rounded-2xl font-black flex items-center gap-4 shadow-sm"><i data-lucide="book-open"></i> Мои уроки</div>
-            </nav>
-            <div class="mt-auto pt-8 border-t border-slate-50">
-                <div class="bg-amber-50 rounded-[2rem] p-6 mb-8 border border-amber-100">
-                    <p id="student-name-display" class="font-black text-slate-900 truncate text-lg">...</p>
-                    <p id="student-phrase-display" class="text-xs text-amber-700 opacity-60 font-mono mb-4"></p>
-                    <div class="bg-white px-5 py-3 rounded-2xl flex justify-between items-center shadow-sm">
-                        <span id="student-total-score" class="font-black text-amber-700 text-2xl">0</span>
+    <div id="screen-student-dash" class="screen hidden min-h-screen flex flex-col md:flex-row">
+        <aside class="desktop-sidebar w-80 p-6 flex flex-col shrink-0">
+            <div class="glass-panel h-full rounded-[3rem] p-8 flex flex-col shadow-xl border-amber-200/50">
+                <div class="flex items-center gap-3 mb-12 font-black text-2xl text-amber-600 italic px-2">
+                    <div class="bg-amber-500 p-2 rounded-xl text-white not-italic shadow-lg shadow-amber-100">
+                        <i data-lucide="backpack" class="w-6 h-6"></i>
                     </div>
+                    With Lera
                 </div>
-                <button onclick="app.logout()" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-400 font-bold">Выйти</button>
+                <div class="mt-auto">
+                    <div class="glass-panel !bg-amber-500/10 rounded-[2.5rem] p-8 mb-6 border-amber-200">
+                        <p id="student-name-display" class="font-black text-xl text-slate-900 truncate mb-1">...</p>
+                        <p id="student-phrase-display" class="text-xs text-amber-700 font-bold opacity-50 mb-6"></p>
+                        <div class="bg-white rounded-2xl p-4 flex justify-between items-center shadow-sm">
+                            <span class="text-xs font-black uppercase text-slate-400">Счет:</span>
+                            <span id="student-total-score" class="font-black text-2xl text-amber-600">0</span>
+                        </div>
+                    </div>
+                    <button onclick="app.logout()" class="w-full py-4 text-slate-400 font-bold flex items-center gap-3 px-6"><i data-lucide="log-out"></i> Выйти</button>
+                </div>
             </div>
         </aside>
-        <nav class="mobile-nav hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-50 flex flex-row justify-around items-center p-2 pb-6 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
-            <div class="flex flex-col items-center gap-1 p-3 text-amber-500 font-black text-[10px]"><i data-lucide="book-open"></i> Уроки</div>
-            <div class="flex flex-col items-center gap-1 p-3 text-slate-700 font-black text-[10px]"><span id="mob-student-score" class="text-lg">0</span> баллов</div>
-            <button onclick="app.logout()" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px]"><i data-lucide="log-out"></i> Выход</button>
+
+        <nav class="mobile-nav hidden fixed bottom-6 left-6 right-6 z-50">
+            <div class="glass-panel rounded-[2.5rem] flex justify-between items-center p-4 px-8 shadow-2xl border-amber-200/50">
+                <div class="font-black text-amber-600 text-lg"><i data-lucide="backpack" class="inline mb-1"></i> <span id="mob-student-score">0</span></div>
+                <button onclick="app.logout()" class="text-slate-400"><i data-lucide="log-out"></i></button>
+            </div>
         </nav>
-        <main class="main-content flex-grow p-6 md:p-12 overflow-y-auto bg-[#F8FAFC]">
-            <h2 class="text-3xl md:text-4xl font-black mb-8 text-slate-800">Уроки</h2>
-            <div id="student-tasks-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+
+        <main class="main-content flex-grow p-6 md:p-12 overflow-y-auto">
+            <h2 class="text-5xl font-black text-slate-900 tracking-tighter mb-12">Мои уроки</h2>
+            <div id="student-tasks-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"></div>
         </main>
     </div>
 
@@ -333,33 +368,35 @@
         import { getAuth, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse('{"apiKey":"AIzaSyA_mptcpENpEsrJYHXBRxb-rlRH_eqI8-E","authDomain":"studento-aa5d2.firebaseapp.com","projectId":"studento-aa5d2","storageBucket":"studento-aa5d2.firebasestorage.app","messagingSenderId":"1078257307837","appId":"1:1078257307837:web:9ea84484c1dfdb129ca7d4"}');
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'school-edu-v4';
+        // CONFIG (Используем ваш предоставленный конфиг)
+        const firebaseConfig = JSON.parse('{"apiKey":"AIzaSyA_mptcpENpEsrJYHXBRxb-rlRH_eqI8-E","authDomain":"With Lera-aa5d2.firebaseapp.com","projectId":"With Lera-aa5d2","storageBucket":"With Lera-aa5d2.firebasestorage.app","messagingSenderId":"1078257307837","appId":"1:1078257307837:web:9ea84484c1dfdb129ca7d4"}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'school-edu-v4-ios';
         
-        const appFb = initializeApp(firebaseConfig);
-        const auth = getAuth(appFb);
-        const db = getFirestore(appFb);
+        const fbApp = initializeApp(firebaseConfig);
+        const auth = getAuth(fbApp);
+        const db = getFirestore(fbApp);
 
         let currentStudentId = null;
         let groupedTasks = []; 
         let statsChart = null; 
 
-        const formatDate = (inputDate) => {
-            if (!inputDate) return "";
-            const d = new Date(inputDate);
-            return d.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-        };
-
-        const notify = (text, type = 'info') => {
+        const notify = (text, type = 'success') => {
             const container = document.getElementById('notification-container');
             const el = document.createElement('div');
-            el.className = `${type === 'success' ? 'bg-emerald-500' : 'bg-rose-500'} text-white px-6 py-4 rounded-2xl shadow-2xl animate-slide-up mb-2 flex items-center gap-3 font-bold`;
-            el.innerHTML = `<span class="text-sm">${text}</span>`;
+            el.className = `glass-panel ${type === 'success' ? 'border-emerald-200' : 'border-rose-200'} p-5 rounded-3xl animate-ios flex items-center gap-4`;
+            el.innerHTML = `
+                <div class="w-10 h-10 rounded-full flex items-center justify-center ${type === 'success' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'} shadow-lg">
+                    <i data-lucide="${type === 'success' ? 'check' : 'x'}" class="w-5 h-5"></i>
+                </div>
+                <span class="font-bold text-slate-800">${text}</span>
+            `;
             container.appendChild(el);
-            setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 400); }, 3000);
+            lucide.createIcons();
+            setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'scale(0.9)'; setTimeout(() => el.remove(), 500); }, 3500);
         };
 
-        const getColPath = (name) => collection(db, 'artifacts', appId, 'public', 'data', name);
+        const getCol = (name) => collection(db, 'artifacts', appId, 'public', 'data', name);
+        const formatDate = (d) => d ? new Date(d).toLocaleString('ru', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : "";
 
         window.app = {
             showScreen: (id) => {
@@ -369,54 +406,39 @@
                 lucide.createIcons();
             },
 
-            askConfirm: (message) => {
-                return new Promise((resolve) => {
-                    const modal = document.getElementById('modal-confirm');
-                    document.getElementById('confirm-message').textContent = message;
-                    modal.classList.remove('hidden');
-                    document.body.classList.add('modal-open');
-                    document.getElementById('confirm-ok').onclick = () => { modal.classList.add('hidden'); document.body.classList.remove('modal-open'); resolve(true); };
-                    document.getElementById('confirm-cancel').onclick = () => { modal.classList.add('hidden'); document.body.classList.remove('modal-open'); resolve(false); };
-                });
-            },
+            askConfirm: (msg) => new Promise(res => {
+                const modal = document.getElementById('modal-confirm');
+                document.getElementById('confirm-message').textContent = msg;
+                modal.classList.remove('hidden');
+                document.getElementById('confirm-ok').onclick = () => { modal.classList.add('hidden'); res(true); };
+                document.getElementById('confirm-cancel').onclick = () => { modal.classList.add('hidden'); res(false); };
+            }),
 
             setTeacherTab: (tab) => {
-                const tabs = ['students', 'tasks', 'stats'];
-                tabs.forEach(t => {
+                ['students', 'tasks', 'stats'].forEach(t => {
                     const el = document.getElementById(`tab-${t}`);
-                    const isVisible = t === tab;
-                    el.classList.toggle('hidden', !isVisible);
-                    
-                    if (isVisible) {
-                        el.classList.remove('animate-slide-up');
-                        void el.offsetWidth; 
-                        el.classList.add('animate-slide-up');
-                    }
-                    
-                    document.getElementById(`tab-btn-${t}`).classList.toggle('active-tab', isVisible);
-                    document.getElementById(`mob-tab-${t}`).classList.toggle('mobile-active-tab', isVisible);
+                    const is = t === tab;
+                    el.classList.toggle('hidden', !is);
+                    document.getElementById(`tab-btn-${t}`).classList.toggle('active-tab', is);
+                    document.getElementById(`mob-tab-${t}`).classList.toggle('mobile-active-tab', is);
+                    if(is) { el.classList.remove('animate-ios'); void el.offsetWidth; el.classList.add('animate-ios'); }
                 });
-                
-                if(tab === 'students') loadMyStudents();
-                if(tab === 'tasks') loadTeacherTasks();
-                if(tab === 'stats') loadStatistics();
+                if(tab === 'students') loadStudents();
+                if(tab === 'tasks') loadTasks();
+                if(tab === 'stats') loadStats();
                 lucide.createIcons();
             },
 
             toggleAddStudentForm: () => document.getElementById('add-student-form').classList.toggle('hidden'),
-
-            openNewTaskForm: () => {
-                document.getElementById('task-creation-wizard').classList.remove('hidden');
-                app.nextWizardStep(1);
-            },
+            openNewTaskForm: () => { document.getElementById('task-creation-wizard').classList.remove('hidden'); app.nextWizardStep(1); },
             closeNewTaskForm: () => document.getElementById('task-creation-wizard').classList.add('hidden'),
             
             nextWizardStep: (step) => {
                 [1, 2, 3].forEach(s => {
                     document.getElementById(`wizard-step-${s}`).classList.toggle('hidden', s !== step);
                     const node = document.getElementById(`node-${s}`);
-                    node.classList.toggle('active', s === step);
-                    node.classList.toggle('completed', s < step);
+                    node.style.background = s <= step ? '#6366f1' : 'white';
+                    node.style.color = s <= step ? 'white' : 'black';
                 });
                 document.getElementById('step-line-1').style.width = step === 1 ? '0%' : step === 2 ? '50%' : '100%';
             },
@@ -424,278 +446,245 @@
             teacherLogin: async () => {
                 try {
                     await signInWithEmailAndPassword(auth, document.getElementById('t-email').value, document.getElementById('t-password').value);
-                    window.app.showScreen('screen-teacher-dash');
-                    window.app.setTeacherTab('students');
-                } catch (e) { notify("Ошибка доступа", "error"); }
+                    app.showScreen('screen-teacher-dash');
+                    app.setTeacherTab('students');
+                } catch { notify("Ошибка входа", "error"); }
             },
 
             teacherRegister: async () => {
                 try {
                     await createUserWithEmailAndPassword(auth, document.getElementById('t-email').value, document.getElementById('t-password').value);
-                    window.app.showScreen('screen-teacher-dash');
-                    window.app.setTeacherTab('students');
-                } catch (e) { notify("Ошибка регистрации", "error"); }
+                    app.showScreen('screen-teacher-dash');
+                    app.setTeacherTab('students');
+                } catch { notify("Ошибка регистрации", "error"); }
             },
 
             createStudent: async () => {
                 const name = document.getElementById('new-name').value;
                 const phrase = document.getElementById('new-phrase').value.trim().toLowerCase();
-                if (!name || phrase.split(/\s+/).length !== 3) return notify("Нужно имя и 3 слова", "error");
+                if (!name || phrase.split(' ').length !== 3) return notify("Нужно имя и 3 слова", "error");
                 try {
-                    await addDoc(getColPath('students'), { teacherId: auth.currentUser.uid, name, phrase, createdAt: Date.now() });
+                    await addDoc(getCol('students'), { teacherId: auth.currentUser.uid, name, phrase, createdAt: Date.now() });
                     document.getElementById('new-name').value = ''; document.getElementById('new-phrase').value = '';
-                    notify("Готово", "success");
-                    loadMyStudents();
+                    notify("Студент добавлен");
+                    loadStudents();
                     app.toggleAddStudentForm();
-                } catch (e) { notify("Ошибка", "error"); }
+                } catch { notify("Ошибка", "error"); }
             },
 
             deleteStudent: async (sid) => {
-                if(await app.askConfirm("Удалить?")) {
+                if(await app.askConfirm("Удалить студента?")) {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', sid));
-                    loadMyStudents();
+                    loadStudents();
                 }
             },
 
             assignTask: async () => {
                 const text = document.getElementById('task-text').value;
-                const answer = document.getElementById('task-answer').value.trim().toLowerCase();
-                const deadlineVal = document.getElementById('task-deadline').value;
-                const publishVal = document.getElementById('task-publish-date').value;
+                const ans = document.getElementById('task-answer').value.trim().toLowerCase();
+                const deadlineStr = document.getElementById('task-deadline').value;
+                const pubStr = document.getElementById('task-publish-date').value;
                 const checked = document.querySelectorAll('.student-checkbox:checked');
                 
-                if (!text || !answer || !deadlineVal || checked.length === 0) return notify("Заполните всё", "error");
+                if (!text || !ans || !deadlineStr || checked.length === 0) return notify("Заполните всё", "error");
                 
                 const groupId = Date.now().toString();
-                // Если дата публикации не указана, публикуем сейчас
-                const publishAt = publishVal ? Timestamp.fromDate(new Date(publishVal)) : Timestamp.now();
-                const deadline = Timestamp.fromDate(new Date(deadlineVal));
+                const publishAt = pubStr ? Timestamp.fromDate(new Date(pubStr)) : Timestamp.now();
+                const deadline = Timestamp.fromDate(new Date(deadlineStr));
 
                 try {
-                    const promises = Array.from(checked).map(cb => {
-                        return addDoc(getColPath('tasks'), {
-                            groupId, teacherId: auth.currentUser.uid, studentId: cb.value, studentName: cb.dataset.name,
-                            question: text, correctAnswer: answer, 
-                            deadline: deadline,
-                            publishAt: publishAt,
-                            status: 'assigned', score: 0, createdAt: Date.now()
-                        });
-                    });
-                    await Promise.all(promises);
-                    notify("Задание отправлено", "success");
+                    const batch = Array.from(checked).map(cb => addDoc(getCol('tasks'), {
+                        groupId, teacherId: auth.currentUser.uid, studentId: cb.value, studentName: cb.dataset.name,
+                        question: text, correctAnswer: ans, deadline, publishAt,
+                        status: 'assigned', score: 0, createdAt: Date.now()
+                    }));
+                    await Promise.all(batch);
+                    notify("Задания отправлены");
                     app.closeNewTaskForm();
-                    loadTeacherTasks();
-                } catch (e) { notify("Ошибка", "error"); }
+                    loadTasks();
+                } catch { notify("Ошибка", "error"); }
             },
 
-            deleteTaskGroup: async (groupId) => {
-                if(await app.askConfirm("Удалить у всех?")) {
-                    const group = groupedTasks.find(g => g.groupId === groupId);
-                    await Promise.all(group.items.map(item => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', item.id))));
-                    loadTeacherTasks();
+            deleteTaskGroup: async (gid) => {
+                if(await app.askConfirm("Отозвать задание у всех?")) {
+                    const group = groupedTasks.find(g => g.groupId === gid);
+                    await Promise.all(group.items.map(i => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', i.id))));
+                    loadTasks();
                 }
             },
 
-            showTaskDetails: (groupId) => {
-                const group = groupedTasks.find(g => g.groupId === groupId);
-                if (!group) return;
+            showTaskDetails: (gid) => {
+                const group = groupedTasks.find(g => g.groupId === gid);
                 const content = document.getElementById('modal-content');
-                const publishDate = group.publishAt ? formatDate(group.publishAt.toDate()) : 'Сразу';
-
                 content.innerHTML = `
-                    <div class="space-y-6">
+                    <div class="space-y-8 animate-ios">
                         <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl">
-                                <i data-lucide="layers" class="w-6 h-6"></i>
+                            <div class="w-14 h-14 bg-indigo-600 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl">
+                                <i data-lucide="layers" class="w-7 h-7"></i>
                             </div>
-                            <h3 class="text-2xl font-black text-slate-800">Детали задания</h3>
-                        </div>
-                        
-                        <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100 italic text-slate-700 leading-relaxed font-medium">"${group.question}"</div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="bg-indigo-50/50 p-5 rounded-3xl border border-indigo-100/50">
-                                <div class="text-[10px] font-black uppercase text-indigo-400 mb-1 tracking-widest">Эталонный ответ</div>
-                                <div class="text-lg font-black text-indigo-700">${group.correctAnswer}</div>
-                            </div>
-                            <div class="bg-amber-50/50 p-5 rounded-3xl border border-amber-100/50">
-                                <div class="text-[10px] font-black uppercase text-amber-500 mb-1 tracking-widest">Дедлайн</div>
-                                <div class="text-lg font-black text-amber-700">${formatDate(group.deadline.toDate())}</div>
-                            </div>
-                            <div class="bg-slate-50 p-5 rounded-3xl border border-slate-100 col-span-1 md:col-span-2">
-                                <div class="text-[10px] font-black uppercase text-slate-400 mb-1 tracking-widest">Публикация</div>
-                                <div class="text-base font-bold text-slate-600">${publishDate}</div>
+                            <div>
+                                <h3 class="text-3xl font-black text-slate-900">Задание</h3>
+                                <p class="text-slate-400 font-bold text-sm">Прогресс группы</p>
                             </div>
                         </div>
-
-                        <div class="space-y-3 pt-4">
-                            <div class="text-[10px] font-black uppercase text-slate-400 mb-1 tracking-widest ml-2">Список учеников</div>
-                            ${group.items.map(item => `
-                                <div class="flex flex-col p-4 bg-white border border-slate-100 rounded-2xl">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <div class="font-bold text-slate-800">${item.studentName}</div>
-                                        <div class="text-xs font-black ${item.status === 'completed' ? 'text-emerald-500' : 'text-slate-300'}">
-                                            ${item.status === 'completed' ? `Сдано (${item.score} б.)` : 'Ожидает'}
-                                        </div>
+                        <div class="glass-panel !bg-black/5 p-8 rounded-[2.5rem] italic font-medium text-lg">"${group.question}"</div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="glass-panel p-6 rounded-[2rem] border-indigo-100">
+                                <p class="text-[10px] font-black uppercase text-indigo-400 mb-2">Ответ</p>
+                                <p class="text-xl font-black text-indigo-600">${group.correctAnswer}</p>
+                            </div>
+                            <div class="glass-panel p-6 rounded-[2rem] border-rose-100">
+                                <p class="text-[10px] font-black uppercase text-rose-400 mb-2">Дедлайн</p>
+                                <p class="text-xl font-black text-rose-600">${formatDate(group.deadline.toDate())}</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                             <p class="text-[10px] font-black uppercase text-slate-400 mb-2 ml-4">Статус учеников</p>
+                            ${group.items.map(i => `
+                                <div class="glass-panel p-6 rounded-3xl flex items-center justify-between">
+                                    <div>
+                                        <p class="font-black text-slate-800">${i.studentName}</p>
+                                        <p class="text-xs text-slate-400 font-bold">${i.status === 'completed' ? 'Завершено' : 'В процессе'}</p>
                                     </div>
-                                    ${item.status === 'completed' ? `<div class="text-sm bg-slate-50 p-3 rounded-xl text-slate-600"><span class="font-bold text-slate-400 text-xs uppercase mr-2">Ответ:</span> ${item.studentAnswer}</div>` : ''}
+                                    <div class="font-black ${i.score > 0 ? 'text-emerald-500' : 'text-slate-300'} text-xl">${i.score} б.</div>
                                 </div>
                             `).join('')}
                         </div>
                     </div>
                 `;
                 document.getElementById('modal-task-details').classList.remove('hidden');
-                document.body.classList.add('modal-open');
                 lucide.createIcons();
             },
 
-            closeTaskDetails: () => {
-                document.getElementById('modal-task-details').classList.add('hidden');
-                document.body.classList.remove('modal-open');
-            },
+            closeTaskDetails: () => document.getElementById('modal-task-details').classList.add('hidden'),
 
             studentLogin: async () => {
                 const phrase = document.getElementById('s-phrase').value.trim().toLowerCase();
-                try {
-                    const snap = await getDocs(getColPath('students'));
-                    const student = snap.docs.find(d => d.data().phrase === phrase);
-                    if (!student) return notify("Неверный код", "error");
-                    currentStudentId = student.id;
-                    document.getElementById('student-name-display').textContent = student.data().name;
-                    document.getElementById('student-phrase-display').textContent = student.data().phrase;
-                    app.showScreen('screen-student-dash');
-                    loadStudentTasks();
-                } catch (e) { notify("Ошибка", "error"); }
+                const snap = await getDocs(getCol('students'));
+                const student = snap.docs.find(d => d.data().phrase === phrase);
+                if (!student) return notify("Неверные слова", "error");
+                currentStudentId = student.id;
+                document.getElementById('student-name-display').textContent = student.data().name;
+                document.getElementById('student-phrase-display').textContent = student.data().phrase;
+                app.showScreen('screen-student-dash');
+                loadStudentTasks();
             },
 
-            submitTask: async (taskId, correct, deadlineSec) => {
-                const val = document.getElementById(`input-${taskId}`).value.trim().toLowerCase();
-                if (!val) return notify("Введите ответ", "error");
-                const isCorrect = val === correct && (Date.now() / 1000) <= deadlineSec;
-                try {
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', taskId), {
-                        status: 'completed', studentAnswer: val, score: isCorrect ? 5 : 0, completedAt: Date.now()
-                    });
-                    notify(isCorrect ? "Верно! +5 баллов" : "Принято", "success");
-                    loadStudentTasks();
-                } catch (e) { notify("Ошибка", "error"); }
+            submitTask: async (tid, correct, deadlineSec) => {
+                const val = document.getElementById(`input-${tid}`).value.trim().toLowerCase();
+                if (!val) return;
+                const isOk = val === correct && (Date.now() / 1000) <= deadlineSec;
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', tid), {
+                    status: 'completed', studentAnswer: val, score: isOk ? 5 : 0, completedAt: Date.now()
+                });
+                notify(isOk ? "Блестяще! +5 баллов" : "Принято");
+                loadStudentTasks();
             },
 
             logout: async () => { await signOut(auth); window.location.reload(); }
         };
 
-        async function loadMyStudents() {
+        async function loadStudents() {
             if (!auth.currentUser) return;
-            const [studentsSnap, tasksSnap] = await Promise.all([ getDocs(getColPath('students')), getDocs(getColPath('tasks')) ]);
-            const tasks = tasksSnap.docs.map(d => d.data());
+            const [sSnap, tSnap] = await Promise.all([ getDocs(getCol('students')), getDocs(getCol('tasks')) ]);
+            const myS = sSnap.docs.map(d => ({id: d.id, ...d.data()})).filter(s => s.teacherId === auth.currentUser.uid);
+            const myT = tSnap.docs.map(d => d.data()).filter(t => t.teacherId === auth.currentUser.uid);
+            
             const scores = {};
-            tasks.forEach(t => { if(t.teacherId === auth.currentUser.uid) scores[t.studentId] = (scores[t.studentId] || 0) + (t.score || 0); });
-            const list = document.getElementById('student-list');
-            const checklist = document.getElementById('student-checklist');
-            const myStudents = studentsSnap.docs.map(d => ({id: d.id, ...d.data()})).filter(s => s.teacherId === auth.currentUser.uid);
-            
-            let listHtml = '';
-            let checklistHtml = '';
-            myStudents.forEach(s => {
-                const total = scores[s.id] || 0;
-                listHtml += `
-                    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 flex flex-col items-center text-center group relative">
-                        <button onclick="app.deleteStudent('${s.id}')" class="absolute top-4 right-4 text-slate-200 hover:text-rose-500 transition-colors p-2"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
-                        <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-xl font-black mb-4">${s.name[0]}</div>
-                        <h4 class="font-black text-slate-800 truncate w-full px-4">${s.name}</h4>
-                        <div class="bg-indigo-600 text-white px-4 py-1.5 rounded-full text-xs font-black shadow-lg shadow-indigo-100 mt-4">${total} б.</div>
-                    </div>`;
-                checklistHtml += `
-                    <label class="group flex items-center gap-4 p-5 bg-white rounded-2xl border-2 border-slate-50 cursor-pointer hover:border-indigo-400 transition-all">
-                        <input type="checkbox" value="${s.id}" data-name="${s.name}" class="student-checkbox peer sr-only">
-                        <div class="w-6 h-6 border-2 border-slate-200 rounded-lg peer-checked:bg-indigo-600 peer-checked:border-indigo-600 flex items-center justify-center transition-all">
-                            <i data-lucide="check" class="w-4 h-4 text-white opacity-0 peer-checked:opacity-100"></i>
-                        </div>
-                        <span class="font-bold text-slate-700">${s.name}</span>
-                    </label>`;
-            });
-            list.innerHTML = listHtml;
-            checklist.innerHTML = checklistHtml;
+            myT.forEach(t => scores[t.studentId] = (scores[t.studentId] || 0) + (t.score || 0));
+
+            document.getElementById('student-list').innerHTML = myS.map(s => `
+                <div class="glass-panel p-10 rounded-[3rem] text-center relative group">
+                    <button onclick="app.deleteStudent('${s.id}')" class="absolute top-6 right-6 text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                    <div class="w-20 h-20 glass-panel bg-white/50 text-indigo-600 rounded-full flex items-center justify-center text-3xl font-black mx-auto mb-6">${s.name[0]}</div>
+                    <h4 class="text-xl font-black text-slate-900 mb-2 truncate">${s.name}</h4>
+                    <div class="inline-block px-5 py-2 glass-panel bg-indigo-600 text-white rounded-full font-black text-sm shadow-lg shadow-indigo-100">${scores[s.id] || 0} баллов</div>
+                </div>
+            `).join('');
+
+            document.getElementById('student-checklist').innerHTML = myS.map(s => `
+                <label class="glass-panel flex items-center gap-4 p-6 rounded-[1.5rem] cursor-pointer hover:bg-white transition-all">
+                    <input type="checkbox" value="${s.id}" data-name="${s.name}" class="student-checkbox sr-only peer">
+                    <div class="w-8 h-8 rounded-xl border-2 border-slate-200 peer-checked:bg-indigo-600 peer-checked:border-indigo-600 flex items-center justify-center transition-all">
+                        <i data-lucide="check" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <span class="font-black text-slate-700">${s.name}</span>
+                </label>
+            `).join('');
             lucide.createIcons();
         }
 
-        async function loadTeacherTasks() {
+        async function loadTasks() {
             if (!auth.currentUser) return;
-            const snap = await getDocs(getColPath('tasks'));
-            const container = document.getElementById('teacher-tasks-list');
-            const allTasks = snap.docs.map(d => ({id: d.id, ...d.data()})).filter(t => t.teacherId === auth.currentUser.uid);
-            const groupsMap = {};
-            allTasks.forEach(t => {
+            const snap = await getDocs(getCol('tasks'));
+            const all = snap.docs.map(d => ({id: d.id, ...d.data()})).filter(t => t.teacherId === auth.currentUser.uid);
+            const map = {};
+            all.forEach(t => {
                 const gid = t.groupId || t.id;
-                if (!groupsMap[gid]) groupsMap[gid] = { ...t, items: [] };
-                groupsMap[gid].items.push(t);
+                if (!map[gid]) map[gid] = { ...t, items: [] };
+                map[gid].items.push(t);
             });
-            groupedTasks = Object.values(groupsMap).sort((a, b) => b.createdAt - a.createdAt);
+            groupedTasks = Object.values(map).sort((a,b) => b.createdAt - a.createdAt);
             
-            if (groupedTasks.length === 0) {
-                container.innerHTML = '<div class="col-span-full py-20 text-center text-slate-300 font-bold italic">Пусто</div>';
-                return;
-            }
-
-            let html = '';
-            groupedTasks.forEach(g => {
-                const total = g.items.length;
+            document.getElementById('teacher-tasks-list').innerHTML = groupedTasks.length ? groupedTasks.map(g => {
                 const done = g.items.filter(i => i.status === 'completed').length;
-                const prc = Math.round((done / total) * 100);
-                // Проверяем, в будущем ли публикация
-                const isScheduled = g.publishAt && g.publishAt.toMillis() > Date.now();
-                const icon = isScheduled ? '<i data-lucide="clock" class="w-4 h-4 text-amber-500"></i>' : '';
-
-                html += `
-                    <div class="task-card bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm cursor-pointer relative" onclick="app.showTaskDetails('${g.groupId}')">
-                        ${isScheduled ? '<div class="absolute top-6 right-14 bg-amber-50 text-amber-600 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider">План</div>' : ''}
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="text-[10px] text-slate-400 font-black uppercase">Дедлайн: ${formatDate(g.deadline.toDate())}</div>
-                            <button onclick="event.stopPropagation(); app.deleteTaskGroup('${g.groupId}')" class="text-slate-200 hover:text-rose-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+                const prc = Math.round((done / g.items.length) * 100);
+                const isPlan = g.publishAt && g.publishAt.toMillis() > Date.now();
+                return `
+                    <div class="task-card glass-panel p-8 rounded-[2.5rem] shadow-sm cursor-pointer relative" onclick="app.showTaskDetails('${g.groupId}')">
+                        ${isPlan ? '<div class="absolute top-6 right-16 bg-amber-500 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest">План</div>' : ''}
+                        <div class="flex justify-between items-center mb-6">
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${formatDate(g.deadline.toDate())}</span>
+                            <button onclick="event.stopPropagation(); app.deleteTaskGroup('${g.groupId}')" class="text-slate-300 hover:text-rose-500"><i data-lucide="x" class="w-5 h-5"></i></button>
                         </div>
-                        <h4 class="font-black text-slate-800 text-lg mb-4 line-clamp-2">${g.question}</h4>
-                        <div class="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden">
-                            <div class="h-full bg-indigo-500" style="width: ${prc}%"></div>
+                        <h4 class="text-xl font-black text-slate-900 mb-8 line-clamp-2 leading-snug">${g.question}</h4>
+                        <div class="w-full h-2 bg-black/5 rounded-full overflow-hidden">
+                            <div class="h-full bg-indigo-500 transition-all duration-1000" style="width: ${prc}%"></div>
                         </div>
-                    </div>`;
-            });
-            container.innerHTML = html;
+                        <p class="text-[10px] font-black text-slate-400 mt-4 uppercase text-right">${done}/${g.items.length} сдано</p>
+                    </div>
+                `;
+            }).join('') : '<div class="col-span-full py-24 text-center text-slate-300 font-bold italic">Заданий нет</div>';
             lucide.createIcons();
         }
 
-        async function loadStatistics() {
+        async function loadStats() {
             if (!auth.currentUser) return;
-            const [studentsSnap, tasksSnap] = await Promise.all([ getDocs(getColPath('students')), getDocs(getColPath('tasks')) ]);
-            const students = studentsSnap.docs.map(d => ({id: d.id, ...d.data()})).filter(s => s.teacherId === auth.currentUser.uid);
-            const tasks = tasksSnap.docs.map(d => ({id: d.id, ...d.data()})).filter(t => t.teacherId === auth.currentUser.uid);
-            const completedTasks = tasks.filter(t => t.status === 'completed').sort((a, b) => a.completedAt - b.completedAt);
+            const [sSnap, tSnap] = await Promise.all([ getDocs(getCol('students')), getDocs(getCol('tasks')) ]);
+            const students = sSnap.docs.map(d => ({id: d.id, ...d.data()})).filter(s => s.teacherId === auth.currentUser.uid);
+            const tasks = tSnap.docs.map(d => ({id: d.id, ...d.data()})).filter(t => t.teacherId === auth.currentUser.uid);
+            const done = tasks.filter(t => t.status === 'completed').sort((a,b) => a.completedAt - b.completedAt);
 
-            const totalScore = completedTasks.reduce((acc, t) => acc + (t.score || 0), 0);
-            const avgScore = completedTasks.length ? (totalScore / completedTasks.length).toFixed(1) : 0;
-            const completionRate = tasks.length ? Math.round((completedTasks.length / tasks.length) * 100) : 0;
+            const total = done.reduce((acc, t) => acc + t.score, 0);
+            const avg = done.length ? (total / done.length).toFixed(1) : 0;
+            const rate = tasks.length ? Math.round((done.length / tasks.length) * 100) : 0;
 
             document.getElementById('quick-stats').innerHTML = `
-                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                    <span class="text-[10px] font-black uppercase text-slate-400 block mb-2 tracking-widest">Средний балл</span>
-                    <div class="text-3xl font-black text-slate-800">${avgScore}</div>
+                <div class="glass-panel p-10 rounded-[3rem]">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Средний балл</p>
+                    <p class="text-5xl font-black text-slate-900">${avg}</p>
                 </div>
-                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                    <span class="text-[10px] font-black uppercase text-slate-400 block mb-2 tracking-widest">Выполнение</span>
-                    <div class="text-3xl font-black text-indigo-600">${completionRate}%</div>
+                <div class="glass-panel p-10 rounded-[3rem]">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Выполнение</p>
+                    <p class="text-5xl font-black text-indigo-600">${rate}%</p>
+                </div>
+                <div class="glass-panel p-10 rounded-[3rem]">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Всего баллов</p>
+                    <p class="text-5xl font-black text-slate-900">${total}</p>
                 </div>
             `;
 
-            const dates = [...new Set(completedTasks.map(t => new Date(t.completedAt).toLocaleDateString()))];
+            const dates = [...new Set(done.map(t => new Date(t.completedAt).toLocaleDateString()))];
             const datasets = students.map((s, idx) => {
-                let cumulative = 0;
+                let current = 0;
                 return {
                     label: s.name,
                     data: dates.map(date => {
-                        cumulative += completedTasks.filter(t => t.studentId === s.id && new Date(t.completedAt).toLocaleDateString() === date).reduce((acc, c) => acc + (c.score || 0), 0);
-                        return cumulative;
+                        current += done.filter(t => t.studentId === s.id && new Date(t.completedAt).toLocaleDateString() === date).reduce((acc, c) => acc + c.score, 0);
+                        return current;
                     }),
-                    borderColor: ['#4f46e5', '#f59e0b', '#10b981', '#ef4444'][idx % 4],
-                    tension: 0.4, fill: false, borderWidth: 3
+                    borderColor: ['#6366f1', '#f59e0b', '#10b981', '#ef4444'][idx % 4],
+                    tension: 0.5, borderWidth: 4, pointRadius: 0
                 };
             });
 
@@ -705,61 +694,54 @@
                 data: { labels: dates, datasets },
                 options: { 
                     responsive: true, maintainAspectRatio: false, 
-                    scales: { y: { beginAtZero: true, grid: { color: '#f8fafc' } }, x: { grid: { display: false } } } 
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } } 
                 }
             });
 
             document.getElementById('stats-summary').innerHTML = students.map(s => {
-                const total = tasks.filter(t => t.studentId === s.id).reduce((acc, c) => acc + (c.score || 0), 0);
+                const pts = tasks.filter(t => t.studentId === s.id).reduce((acc, c) => acc + c.score, 0);
                 return `
-                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                        <div class="font-black text-slate-800 truncate mb-1">${s.name}</div>
-                        <div class="text-indigo-600 font-black text-xl">${total} баллов</div>
+                    <div class="glass-panel p-6 rounded-3xl border-black/5">
+                        <p class="font-black text-slate-900 truncate mb-1">${s.name}</p>
+                        <p class="text-2xl font-black text-indigo-600">${pts} баллов</p>
                     </div>`;
             }).join('');
         }
 
         async function loadStudentTasks() {
             if (!currentStudentId) return;
-            const snap = await getDocs(getColPath('tasks'));
-            const container = document.getElementById('student-tasks-list');
+            const snap = await getDocs(getCol('tasks'));
             const now = Date.now();
-            
-            // Фильтруем задания: только для этого студента И время публикации уже наступило (или его нет)
             const tasks = snap.docs.map(d => ({id: d.id, ...d.data()}))
-                .filter(t => t.studentId === currentStudentId)
-                .filter(t => {
-                    // Если publishAt существует, проверяем время. Если нет, показываем сразу.
-                    if (t.publishAt) {
-                        return t.publishAt.toMillis() <= now;
-                    }
-                    return true;
-                })
-                .sort((a, b) => b.createdAt - a.createdAt);
+                .filter(t => t.studentId === currentStudentId && (!t.publishAt || t.publishAt.toMillis() <= now))
+                .sort((a,b) => b.createdAt - a.createdAt);
                 
-            const total = tasks.reduce((acc, t) => acc + (t.score || 0), 0);
-            document.getElementById('student-total-score').textContent = total + " б.";
+            const total = tasks.reduce((acc, t) => acc + t.score, 0);
+            document.getElementById('student-total-score').textContent = total;
             document.getElementById('mob-student-score').textContent = total;
 
-            if (tasks.length === 0) {
-                container.innerHTML = '<div class="col-span-full py-20 text-center text-slate-300 font-bold italic">Заданий пока нет</div>';
-                return;
-            }
-
-            let html = '';
-            tasks.forEach(t => {
-                const done = t.status === 'completed';
-                if (done) {
-                    html += `<div class="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm"><span class="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black">+${t.score} б.</span><h4 class="font-bold text-slate-500 mt-4">${t.question}</h4></div>`;
+            document.getElementById('student-tasks-list').innerHTML = tasks.length ? tasks.map(t => {
+                const isDone = t.status === 'completed';
+                if (isDone) {
+                    return `
+                        <div class="glass-panel p-8 rounded-[2.5rem] opacity-60">
+                            <span class="bg-emerald-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase">+${t.score} б.</span>
+                            <h4 class="font-bold text-slate-500 mt-6 leading-snug">${t.question}</h4>
+                        </div>`;
                 } else {
-                    html += `<div class="bg-white rounded-[2rem] p-6 md:p-8 border-2 border-amber-100 shadow-xl shadow-amber-50 relative"><h4 class="text-xl font-black text-slate-800 mb-8">${t.question}</h4><input type="text" id="input-${t.id}" class="w-full p-5 bg-slate-50 rounded-2xl outline-none font-bold text-lg mb-4" placeholder="Твой ответ..."><button onclick="app.submitTask('${t.id}', '${t.correctAnswer}', ${t.deadline.seconds})" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black">Сдать</button></div>`;
+                    return `
+                        <div class="task-card glass-panel !bg-white p-10 rounded-[3rem] shadow-xl border-amber-200">
+                            <h4 class="text-2xl font-black text-slate-900 mb-10 leading-tight">${t.question}</h4>
+                            <input type="text" id="input-${t.id}" class="ios-input w-full px-6 py-6 rounded-2xl font-bold text-lg mb-4 text-center" placeholder="Твой ответ...">
+                            <button onclick="app.submitTask('${t.id}', '${t.correctAnswer}', ${t.deadline.seconds})" class="btn-primary !from-amber-500 !to-orange-500 w-full py-6 text-white rounded-3xl font-black">Сдать урок</button>
+                        </div>`;
                 }
-            });
-            container.innerHTML = html;
+            }).join('') : '<div class="col-span-full py-24 text-center text-slate-300 font-bold italic">Уроков пока нет</div>';
             lucide.createIcons();
         }
 
-        onAuthStateChanged(auth, (user) => { if (user && user.email) { loadMyStudents(); loadTeacherTasks(); } });
+        onAuthStateChanged(auth, (u) => { if (u && u.email) { loadStudents(); loadTasks(); } });
         signInAnonymously(auth).catch(() => {});
         lucide.createIcons();
     </script>

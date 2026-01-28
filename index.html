@@ -3,11 +3,8 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#ffffff">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-
-<meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-capable" content="yes">
 
     <title>With Lera</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
@@ -17,37 +14,31 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-
         /* Весь "задник" и системные области — чисто белые */
-html {
-    background-color: #ffffff !important;
-}
+        html { background-color: #ffffff !important; }
 
-body {
-    background-color: #ffffff !important;
-    /* Убираем padding-top отсюда, чтобы хедер мог подняться к самому верху */
-    padding-top: 0 !important; 
-}
+        body {
+            background-color: #ffffff !important;
+            padding-top: 0 !important; 
+        }
 
-/* Мобильный хедер: возвращаем размытие, но гарантируем белый подтон */
-.mobile-header-glass {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    /* Увеличиваем высоту, чтобы она включала safe-area + высоту самого хедера */
-    height: calc(4rem + env(safe-area-inset-top)) !important;
-    background-color: rgba(255, 255, 255, 0.8) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    z-index: 40;
-    
-    /* Центрируем текст, но с учетом отступа под островок */
-    display: flex;
-    align-items: flex-end; /* Прижимаем текст к низу хедера */
-    padding-bottom: 1rem;  /* Делаем отступ снизу для заголовка */
-    justify-content: center;
-}
+        /* Мобильный хедер: возвращаем размытие, но гарантируем белый подтон */
+        .mobile-header-glass {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: calc(4rem + env(safe-area-inset-top)) !important;
+            background-color: rgba(255, 255, 255, 0.8) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            z-index: 40;
+            display: flex;
+            align-items: flex-end; 
+            padding-bottom: 1rem; 
+            justify-content: center;
+        }
+
         body { font-family: 'Inter', sans-serif; }
         body.modal-open { overflow: hidden; }
         .hidden { display: none !important; }
@@ -78,20 +69,16 @@ body {
         @media (orientation: portrait), (max-width: 768px) {
             .desktop-sidebar { display: none !important; }
             .mobile-nav { display: flex !important; }
-            /* Увеличиваем padding-top, чтобы контент не заезжал под верхний хедер */
             .main-content { 
                 padding-top: calc(5rem + env(safe-area-inset-top)) !important; 
-        padding-bottom: 7rem !important;
+                padding-bottom: 7rem !important;
                 padding-left: 1rem !important; 
                 padding-right: 1rem !important; 
             }
             .screen-header { text-align: center; }
-            
-            /* Скрываем заголовки внутри контента на мобильном, так как они теперь сверху */
             .screen-header h2 { display: none; }
             .screen-header p { display: none; }
             
-            /* Убираем "виджетность" на мобильных для логина */
             .login-card { 
                 background: transparent !important; 
                 box-shadow: none !important; 
@@ -208,8 +195,8 @@ body {
         
         <!-- MOBILE TOP HEADER (Fixed) -->
         <header class="md:hidden mobile-header-glass border-b border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-    <h1 id="mobile-header-title" class="font-black text-2xl text-slate-800">Класс</h1>
-</header>
+            <h1 id="mobile-header-title" class="font-black text-2xl text-slate-800">Класс</h1>
+        </header>
 
         <!-- Desktop Sidebar -->
         <aside class="desktop-sidebar w-80 bg-white border-r border-slate-100 p-8 flex flex-col shrink-0 overflow-y-auto">
@@ -285,7 +272,7 @@ body {
                 <div id="task-creation-wizard" class="hidden mb-12">
                     <div class="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100">
                         <div class="bg-slate-900 px-6 py-5 md:px-10 md:py-6 flex justify-between items-center">
-                            <h3 class="text-white font-bold">Конструктор задания</h3>
+                            <h3 id="wizard-title" class="text-white font-bold">Конструктор задания</h3>
                             <button onclick="app.closeNewTaskForm()" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
                         </div>
                         <div class="p-6 md:p-10">
@@ -359,8 +346,8 @@ body {
         
         <!-- MOBILE TOP HEADER (Fixed) -->
         <header class="md:hidden mobile-header-glass border-b border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-    <h1 id="mobile-header-title" class="font-black text-2xl text-slate-800">Мои уроки</h1>
-</header>
+            <h1 id="mobile-header-title" class="font-black text-2xl text-slate-800">Мои уроки</h1>
+        </header>
 
         <aside class="desktop-sidebar w-80 bg-white border-r border-slate-100 p-8 flex flex-col shrink-0 overflow-y-auto">
             <div class="flex items-center gap-3 mb-12 font-black text-2xl uppercase tracking-widest text-amber-600 italic"><i data-lucide="backpack"></i> With Lera</div>
@@ -392,7 +379,7 @@ body {
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, getDoc, setDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
         const firebaseConfig = JSON.parse('{"apiKey":"AIzaSyA_mptcpENpEsrJYHXBRxb-rlRH_eqI8-E","authDomain":"studento-aa5d2.firebaseapp.com","projectId":"studento-aa5d2","storageBucket":"studento-aa5d2.firebasestorage.app","messagingSenderId":"1078257307837","appId":"1:1078257307837:web:9ea84484c1dfdb129ca7d4"}');
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'school-edu-v4';
@@ -403,6 +390,8 @@ body {
 
         let currentStudentId = null;
         let groupedTasks = []; 
+        let drafts = [];
+        let editingDraftId = null;
         let statsChart = null; 
 
         const formatDate = (inputDate) => {
@@ -443,58 +432,125 @@ body {
                 });
             },
 
-
-
             setTeacherTab: (tab) => {
-    // Проверяем, не нажимаем ли мы на ту же самую вкладку
-    if (activeTeacherTab === tab && !document.getElementById(`tab-${tab}`).classList.contains('hidden')) {
-        return; // Если вкладка уже активна, ничего не делаем и выходим
-    }
+                if (activeTeacherTab === tab && !document.getElementById(`tab-${tab}`).classList.contains('hidden')) {
+                    return; 
+                }
 
-    const tabs = ['students', 'tasks', 'stats'];
-    const titles = {
-        students: 'Класс',
-        tasks: 'Задания',
-        stats: 'Аналитика'
-    };
-    
-    const mobileTitle = document.getElementById('mobile-header-title');
-    if (mobileTitle) mobileTitle.textContent = titles[tab];
+                const tabs = ['students', 'tasks', 'stats'];
+                const titles = { students: 'Класс', tasks: 'Задания', stats: 'Аналитика' };
+                
+                const mobileTitle = document.getElementById('mobile-header-title');
+                if (mobileTitle) mobileTitle.textContent = titles[tab];
 
-    tabs.forEach(t => {
-        const el = document.getElementById(`tab-${t}`);
-        const isVisible = t === tab;
-        
-        if (isVisible) {
-            el.classList.remove('hidden');
-            // Анимация добавится только если мы реально переключили вкладку
-            el.classList.remove('animate-slide-up');
-            void el.offsetWidth; // Магия для перезапуска анимации (Reflow)
-            el.classList.add('animate-slide-up');
-        } else {
-            el.classList.add('hidden');
-        }
-        
-        document.getElementById(`tab-btn-${t}`).classList.toggle('active-tab', isVisible);
-        document.getElementById(`mob-tab-${t}`).classList.toggle('mobile-active-tab', isVisible);
-    });
-    
-    // Запоминаем текущую вкладку
-    activeTeacherTab = tab;
+                tabs.forEach(t => {
+                    const el = document.getElementById(`tab-${t}`);
+                    const isVisible = t === tab;
+                    
+                    if (isVisible) {
+                        el.classList.remove('hidden');
+                        el.classList.remove('animate-slide-up');
+                        void el.offsetWidth; 
+                        el.classList.add('animate-slide-up');
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                    
+                    document.getElementById(`tab-btn-${t}`).classList.toggle('active-tab', isVisible);
+                    document.getElementById(`mob-tab-${t}`).classList.toggle('mobile-active-tab', isVisible);
+                });
+                
+                activeTeacherTab = tab;
 
-    if(tab === 'students') loadMyStudents();
-    if(tab === 'tasks') loadTeacherTasks();
-    if(tab === 'stats') loadStatistics();
-    lucide.createIcons();
-},
+                if(tab === 'students') loadMyStudents();
+                if(tab === 'tasks') loadTeacherTasks();
+                if(tab === 'stats') loadStatistics();
+                lucide.createIcons();
+            },
 
             toggleAddStudentForm: () => document.getElementById('add-student-form').classList.toggle('hidden'),
 
-            openNewTaskForm: () => {
+            openNewTaskForm: (draftId = null) => {
                 document.getElementById('task-creation-wizard').classList.remove('hidden');
+                editingDraftId = draftId;
+
+                // Reset inputs
+                document.getElementById('task-text').value = '';
+                document.getElementById('task-answer').value = '';
+                document.getElementById('task-deadline').value = '';
+                document.getElementById('task-publish-date').value = '';
+                document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = false);
+
+                document.getElementById('wizard-title').textContent = draftId ? "Редактирование черновика" : "Конструктор задания";
+
+                if (draftId) {
+                    const draft = drafts.find(d => d.id === draftId);
+                    if (draft) {
+                        document.getElementById('task-text').value = draft.question || '';
+                        document.getElementById('task-answer').value = draft.correctAnswer || '';
+                        if (draft.deadline) document.getElementById('task-deadline').value = draft.deadline; // Already string in draft or need convert? 
+                        // Draft deadline stored as string ISO or Timestamp? Let's use string for drafts to keep input value
+                        if (draft.publishAt) document.getElementById('task-publish-date').value = draft.publishAt;
+                        
+                        if (draft.studentIds && Array.isArray(draft.studentIds)) {
+                            draft.studentIds.forEach(sid => {
+                                const cb = document.querySelector(`.student-checkbox[value="${sid}"]`);
+                                if (cb) cb.checked = true;
+                            });
+                        }
+                    }
+                }
+
                 app.nextWizardStep(1);
             },
-            closeNewTaskForm: () => document.getElementById('task-creation-wizard').classList.add('hidden'),
+
+            // Updated close function with auto-save draft logic
+            closeNewTaskForm: async () => {
+                const question = document.getElementById('task-text').value.trim();
+                const container = document.getElementById('task-creation-wizard');
+                
+                // If there is text, we save as draft automatically
+                if (question) {
+                    const answer = document.getElementById('task-answer').value.trim();
+                    const deadline = document.getElementById('task-deadline').value;
+                    const publishAt = document.getElementById('task-publish-date').value;
+                    const checked = Array.from(document.querySelectorAll('.student-checkbox:checked')).map(cb => cb.value);
+
+                    const draftData = {
+                        teacherId: auth.currentUser.uid,
+                        question,
+                        correctAnswer: answer,
+                        deadline, 
+                        publishAt, 
+                        studentIds: checked,
+                        updatedAt: Date.now()
+                    };
+
+                    try {
+                        if (editingDraftId) {
+                            // Update existing draft
+                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'drafts', editingDraftId), draftData);
+                        } else {
+                            // Create new draft
+                            await addDoc(getColPath('drafts'), draftData);
+                        }
+                        notify("Сохранено как черновик", "info");
+                    } catch (e) {
+                        console.error(e);
+                        notify("Ошибка сохранения черновика", "error");
+                    }
+                } else if (editingDraftId) {
+                    // If question is empty and we were editing a draft, maybe delete it? 
+                    // Or just keep it as is? Let's keep it simple, do nothing or delete empty?
+                    // Let's assume empty question means "delete draft" if the user cleared it.
+                    // But usually closing with empty text implies "Discard".
+                    // If it was an existing draft and we cleared text, we probably shouldn't kill it silently.
+                }
+
+                editingDraftId = null;
+                container.classList.add('hidden');
+                loadTeacherTasks(); // Reload to show new draft
+            },
             
             nextWizardStep: (step) => {
                 [1, 2, 3].forEach(s => {
@@ -552,7 +608,6 @@ body {
                 if (!text || !answer || !deadlineVal || checked.length === 0) return notify("Заполните всё", "error");
                 
                 const groupId = Date.now().toString();
-                // Если дата публикации не указана, публикуем сейчас
                 const publishAt = publishVal ? Timestamp.fromDate(new Date(publishVal)) : Timestamp.now();
                 const deadline = Timestamp.fromDate(new Date(deadlineVal));
 
@@ -567,16 +622,33 @@ body {
                         });
                     });
                     await Promise.all(promises);
+                    
+                    // If we successfully published a draft, delete the draft
+                    if (editingDraftId) {
+                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'drafts', editingDraftId));
+                    }
+                    
+                    // Clear form properly so it doesn't trigger auto-save in closeNewTaskForm
+                    document.getElementById('task-text').value = ''; 
+                    editingDraftId = null;
+
                     notify("Задание отправлено", "success");
-                    app.closeNewTaskForm();
+                    document.getElementById('task-creation-wizard').classList.add('hidden');
                     loadTeacherTasks();
-                } catch (e) { notify("Ошибка", "error"); }
+                } catch (e) { console.error(e); notify("Ошибка", "error"); }
             },
 
             deleteTaskGroup: async (groupId) => {
                 if(await app.askConfirm("Удалить у всех?")) {
                     const group = groupedTasks.find(g => g.groupId === groupId);
                     await Promise.all(group.items.map(item => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', item.id))));
+                    loadTeacherTasks();
+                }
+            },
+
+            deleteDraft: async (draftId) => {
+                 if(await app.askConfirm("Удалить черновик?")) {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'drafts', draftId));
                     loadTeacherTasks();
                 }
             },
@@ -645,7 +717,11 @@ body {
                     const snap = await getDocs(getColPath('students'));
                     const student = snap.docs.find(d => d.data().phrase === phrase);
                     if (!student) return notify("Неверный код", "error");
+                    
+                    // Сохраняем ID студента для авто-входа
+                    localStorage.setItem('student_id', student.id);
                     currentStudentId = student.id;
+
                     document.getElementById('student-name-display').textContent = student.data().name;
                     document.getElementById('student-phrase-display').textContent = student.data().phrase;
                     app.showScreen('screen-student-dash');
@@ -666,7 +742,11 @@ body {
                 } catch (e) { notify("Ошибка", "error"); }
             },
 
-            logout: async () => { await signOut(auth); window.location.reload(); }
+            logout: async () => { 
+                localStorage.removeItem('student_id');
+                await signOut(auth); 
+                window.location.reload(); 
+            }
         };
 
         async function loadMyStudents() {
@@ -706,9 +786,12 @@ body {
 
         async function loadTeacherTasks() {
             if (!auth.currentUser) return;
-            const snap = await getDocs(getColPath('tasks'));
+            const [tasksSnap, draftsSnap] = await Promise.all([ getDocs(getColPath('tasks')), getDocs(getColPath('drafts')) ]);
+            
             const container = document.getElementById('teacher-tasks-list');
-            const allTasks = snap.docs.map(d => ({id: d.id, ...d.data()})).filter(t => t.teacherId === auth.currentUser.uid);
+            const allTasks = tasksSnap.docs.map(d => ({id: d.id, ...d.data()})).filter(t => t.teacherId === auth.currentUser.uid);
+            drafts = draftsSnap.docs.map(d => ({id: d.id, ...d.data()})).filter(d => d.teacherId === auth.currentUser.uid);
+
             const groupsMap = {};
             allTasks.forEach(t => {
                 const gid = t.groupId || t.id;
@@ -717,20 +800,36 @@ body {
             });
             groupedTasks = Object.values(groupsMap).sort((a, b) => b.createdAt - a.createdAt);
             
-            if (groupedTasks.length === 0) {
+            if (groupedTasks.length === 0 && drafts.length === 0) {
                 container.innerHTML = '<div class="col-span-full py-20 text-center text-slate-300 font-bold italic">Пусто</div>';
                 return;
             }
 
             let html = '';
+            
+            // Render Drafts first
+            drafts.sort((a, b) => b.updatedAt - a.updatedAt).forEach(d => {
+                html += `
+                    <div class="task-card bg-slate-50 p-6 rounded-[2rem] border-2 border-dashed border-slate-200 cursor-pointer relative group" onclick="app.openNewTaskForm('${d.id}')">
+                         <div class="absolute top-6 right-14 bg-slate-200 text-slate-500 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider">Черновик</div>
+                        <div class="flex justify-between items-start mb-4">
+                             <div class="text-[10px] text-slate-400 font-black uppercase">Изменен: ${new Date(d.updatedAt).toLocaleDateString()}</div>
+                            <button onclick="event.stopPropagation(); app.deleteDraft('${d.id}')" class="text-slate-300 hover:text-rose-500"><i data-lucide="trash" class="w-5 h-5"></i></button>
+                        </div>
+                        <h4 class="font-black text-slate-700 text-lg mb-4 line-clamp-2 opacity-70 group-hover:opacity-100 transition-opacity">${d.question || 'Без названия'}</h4>
+                        <div class="w-full flex justify-end">
+                            <span class="text-xs font-bold text-indigo-500 flex items-center gap-1">Продолжить <i data-lucide="arrow-right" class="w-3 h-3"></i></span>
+                        </div>
+                    </div>`;
+            });
+
+            // Render Active Tasks
             groupedTasks.forEach(g => {
                 const total = g.items.length;
                 const done = g.items.filter(i => i.status === 'completed').length;
                 const prc = Math.round((done / total) * 100);
-                // Проверяем, в будущем ли публикация
                 const isScheduled = g.publishAt && g.publishAt.toMillis() > Date.now();
-                const icon = isScheduled ? '<i data-lucide="clock" class="w-4 h-4 text-amber-500"></i>' : '';
-
+                
                 html += `
                     <div class="task-card bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm cursor-pointer relative" onclick="app.showTaskDetails('${g.groupId}')">
                         ${isScheduled ? '<div class="absolute top-6 right-14 bg-amber-50 text-amber-600 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider">План</div>' : ''}
@@ -810,11 +909,9 @@ body {
             const container = document.getElementById('student-tasks-list');
             const now = Date.now();
             
-            // Фильтруем задания: только для этого студента И время публикации уже наступило (или его нет)
             const tasks = snap.docs.map(d => ({id: d.id, ...d.data()}))
                 .filter(t => t.studentId === currentStudentId)
                 .filter(t => {
-                    // Если publishAt существует, проверяем время. Если нет, показываем сразу.
                     if (t.publishAt) {
                         return t.publishAt.toMillis() <= now;
                     }
@@ -844,8 +941,35 @@ body {
             lucide.createIcons();
         }
 
-        onAuthStateChanged(auth, (user) => { if (user && user.email) { loadMyStudents(); loadTeacherTasks(); } });
-        signInAnonymously(auth).catch(() => {});
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                if (user.email) {
+                    // Учитель найден
+                    window.app.showScreen('screen-teacher-dash');
+                    window.app.setTeacherTab('students');
+                } else {
+                    // Анонимный вход (возможно студент)
+                    const sid = localStorage.getItem('student_id');
+                    if (sid) {
+                        try {
+                            const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', sid));
+                            if (snap.exists()) {
+                                currentStudentId = sid;
+                                const d = snap.data();
+                                document.getElementById('student-name-display').textContent = d.name;
+                                document.getElementById('student-phrase-display').textContent = d.phrase;
+                                window.app.showScreen('screen-student-dash');
+                                loadStudentTasks();
+                            }
+                        } catch(e) { console.error("Auto-login error", e); }
+                    }
+                }
+            } else {
+                // Если вообще никого нет, входим анонимно, чтобы работали запросы к базе
+                signInAnonymously(auth).catch(() => {});
+            }
+        });
+        
         lucide.createIcons();
     </script>
 </body>

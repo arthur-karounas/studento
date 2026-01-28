@@ -668,7 +668,7 @@
                             <h3 class="text-2xl font-black text-slate-800">Детали задания</h3>
                         </div>
                         
-                        <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100 italic text-slate-700 leading-relaxed font-medium">"${group.question}"</div>
+                        <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100 italic text-slate-700 leading-relaxed font-medium whitespace-pre-wrap">"${group.question}"</div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="bg-indigo-50/50 p-5 rounded-3xl border border-indigo-100/50">
@@ -816,7 +816,7 @@
                              <div class="text-[10px] text-slate-400 font-black uppercase">Изменен: ${new Date(d.updatedAt).toLocaleDateString()}</div>
                             <button onclick="event.stopPropagation(); app.deleteDraft('${d.id}')" class="text-slate-300 hover:text-rose-500"><i data-lucide="trash" class="w-5 h-5"></i></button>
                         </div>
-                        <h4 class="font-black text-slate-700 text-lg mb-4 line-clamp-2 opacity-70 group-hover:opacity-100 transition-opacity">${d.question || 'Без названия'}</h4>
+                        <h4 class="font-black text-slate-700 text-lg mb-4 line-clamp-2 opacity-70 group-hover:opacity-100 transition-opacity whitespace-pre-wrap">${d.question || 'Без названия'}</h4>
                         <div class="w-full flex justify-end">
                             <span class="text-xs font-bold text-indigo-500 flex items-center gap-1">Продолжить <i data-lucide="arrow-right" class="w-3 h-3"></i></span>
                         </div>
@@ -837,7 +837,7 @@
                             <div class="text-[10px] text-slate-400 font-black uppercase">Дедлайн: ${formatDate(g.deadline.toDate())}</div>
                             <button onclick="event.stopPropagation(); app.deleteTaskGroup('${g.groupId}')" class="text-slate-200 hover:text-rose-500"><i data-lucide="x" class="w-5 h-5"></i></button>
                         </div>
-                        <h4 class="font-black text-slate-800 text-lg mb-4 line-clamp-2">${g.question}</h4>
+                        <h4 class="font-black text-slate-800 text-lg mb-4 line-clamp-2 whitespace-pre-wrap">${g.question}</h4>
                         <div class="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden">
                             <div class="h-full bg-indigo-500" style="width: ${prc}%"></div>
                         </div>
@@ -932,9 +932,9 @@
             tasks.forEach(t => {
                 const done = t.status === 'completed';
                 if (done) {
-                    html += `<div class="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm"><span class="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black">+${t.score} б.</span><h4 class="font-bold text-slate-500 mt-4">${t.question}</h4></div>`;
+                    html += `<div class="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm"><span class="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black">+${t.score} б.</span><h4 class="font-bold text-slate-500 mt-4 whitespace-pre-wrap">${t.question}</h4></div>`;
                 } else {
-                    html += `<div class="bg-white rounded-[2rem] p-6 md:p-8 border-2 border-amber-100 shadow-xl shadow-amber-50 relative"><h4 class="text-xl font-black text-slate-800 mb-8">${t.question}</h4><input type="text" id="input-${t.id}" class="w-full p-5 bg-slate-50 rounded-2xl outline-none font-bold text-lg mb-4" placeholder="Твой ответ..."><button onclick="app.submitTask('${t.id}', '${t.correctAnswer}', ${t.deadline.seconds})" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black">Сдать</button></div>`;
+                    html += `<div class="bg-white rounded-[2rem] p-6 md:p-8 border-2 border-amber-100 shadow-xl shadow-amber-50 relative"><h4 class="text-xl font-black text-slate-800 mb-8 whitespace-pre-wrap">${t.question}</h4><input type="text" id="input-${t.id}" class="w-full p-5 bg-slate-50 rounded-2xl outline-none font-bold text-lg mb-4" placeholder="Твой ответ..."><button onclick="app.submitTask('${t.id}', '${t.correctAnswer}', ${t.deadline.seconds})" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black">Сдать</button></div>`;
                 }
             });
             container.innerHTML = html;

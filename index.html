@@ -306,7 +306,7 @@
                                     </div>
                                     <div>
                                         <label class="block text-sm font-bold text-slate-400 mb-2 ml-2 uppercase tracking-wide">Крайний срок сдачи</label>
-                                        <input type="text" onfocus="(this.type='datetime-local')" onblur="if(!this.value)this.type='text'" id="task-deadline" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 font-bold text-slate-700" placeholder="Выберите дату и время">
+                                        <input type="text" onfocus="(this.type='datetime-local')" onblur="if(!this.value)this.type='text'" id="task-deadline" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 font-bold text-slate-700" placeholder="Выберите дату и время (не влияет на оценку)">
                                     </div>
                                 </div>
                                 
@@ -393,6 +393,59 @@
         let drafts = [];
         let editingDraftId = null;
         let statsChart = null; 
+
+        // === ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ СРАВНЕНИЯ СТРОК (Алгоритм Левенштейна) ===
+        function levenshtein(a, b) {
+            if (a.length === 0) return b.length;
+            if (b.length === 0) return a.length;
+
+            const matrix = [];
+
+            // Инициализация первой колонки
+            for (let i = 0; i <= b.length; i++) {
+                matrix[i] = [i];
+            }
+
+            // Инициализация первой строки
+            for (let j = 0; j <= a.length; j++) {
+                matrix[0][j] = j;
+            }
+
+            // Заполнение матрицы
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1, // замена
+                            Math.min(
+                                matrix[i][j - 1] + 1, // вставка
+                                matrix[i - 1][j] + 1 // удаление
+                            )
+                        );
+                    }
+                }
+            }
+
+            return matrix[b.length][a.length];
+        }
+
+        function calculateSimilarity(s1, s2) {
+            const a = s1.trim().toLowerCase();
+            const b = s2.trim().toLowerCase();
+            
+            // Если строки идентичны
+            if (a === b) return 100;
+
+            const maxLength = Math.max(a.length, b.length);
+            if (maxLength === 0) return 100; // Обе пустые
+
+            const distance = levenshtein(a, b);
+            const similarity = (1 - distance / maxLength) * 100;
+            return Math.floor(similarity);
+        }
+        // =================================================================
 
         const formatDate = (inputDate) => {
             if (!inputDate) return "";
@@ -488,8 +541,7 @@
                     if (draft) {
                         document.getElementById('task-text').value = draft.question || '';
                         document.getElementById('task-answer').value = draft.correctAnswer || '';
-                        if (draft.deadline) document.getElementById('task-deadline').value = draft.deadline; // Already string in draft or need convert? 
-                        // Draft deadline stored as string ISO or Timestamp? Let's use string for drafts to keep input value
+                        if (draft.deadline) document.getElementById('task-deadline').value = draft.deadline; 
                         if (draft.publishAt) document.getElementById('task-publish-date').value = draft.publishAt;
                         
                         if (draft.studentIds && Array.isArray(draft.studentIds)) {
@@ -504,12 +556,10 @@
                 app.nextWizardStep(1);
             },
 
-            // Updated close function with auto-save draft logic
             closeNewTaskForm: async () => {
                 const question = document.getElementById('task-text').value.trim();
                 const container = document.getElementById('task-creation-wizard');
                 
-                // If there is text, we save as draft automatically
                 if (question) {
                     const answer = document.getElementById('task-answer').value.trim();
                     const deadline = document.getElementById('task-deadline').value;
@@ -528,10 +578,8 @@
 
                     try {
                         if (editingDraftId) {
-                            // Update existing draft
                             await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'drafts', editingDraftId), draftData);
                         } else {
-                            // Create new draft
                             await addDoc(getColPath('drafts'), draftData);
                         }
                         notify("Сохранено как черновик", "info");
@@ -539,17 +587,11 @@
                         console.error(e);
                         notify("Ошибка сохранения черновика", "error");
                     }
-                } else if (editingDraftId) {
-                    // If question is empty and we were editing a draft, maybe delete it? 
-                    // Or just keep it as is? Let's keep it simple, do nothing or delete empty?
-                    // Let's assume empty question means "delete draft" if the user cleared it.
-                    // But usually closing with empty text implies "Discard".
-                    // If it was an existing draft and we cleared text, we probably shouldn't kill it silently.
                 }
 
                 editingDraftId = null;
                 container.classList.add('hidden');
-                loadTeacherTasks(); // Reload to show new draft
+                loadTeacherTasks(); 
             },
             
             nextWizardStep: (step) => {
@@ -600,7 +642,7 @@
 
             assignTask: async () => {
                 const text = document.getElementById('task-text').value;
-                const answer = document.getElementById('task-answer').value.trim().toLowerCase();
+                const answer = document.getElementById('task-answer').value.trim();
                 const deadlineVal = document.getElementById('task-deadline').value;
                 const publishVal = document.getElementById('task-publish-date').value;
                 const checked = document.querySelectorAll('.student-checkbox:checked');
@@ -623,12 +665,10 @@
                     });
                     await Promise.all(promises);
                     
-                    // If we successfully published a draft, delete the draft
                     if (editingDraftId) {
                         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'drafts', editingDraftId));
                     }
                     
-                    // Clear form properly so it doesn't trigger auto-save in closeNewTaskForm
                     document.getElementById('task-text').value = ''; 
                     editingDraftId = null;
 
@@ -676,7 +716,7 @@
                                 <div class="text-lg font-black text-indigo-700">${group.correctAnswer}</div>
                             </div>
                             <div class="bg-amber-50/50 p-5 rounded-3xl border border-amber-100/50">
-                                <div class="text-[10px] font-black uppercase text-amber-500 mb-1 tracking-widest">Дедлайн</div>
+                                <div class="text-[10px] font-black uppercase text-amber-500 mb-1 tracking-widest">Дедлайн (инфо)</div>
                                 <div class="text-lg font-black text-amber-700">${formatDate(group.deadline.toDate())}</div>
                             </div>
                             <div class="bg-slate-50 p-5 rounded-3xl border border-slate-100 col-span-1 md:col-span-2">
@@ -695,7 +735,10 @@
                                             ${item.status === 'completed' ? `Сдано (${item.score} б.)` : 'Ожидает'}
                                         </div>
                                     </div>
-                                    ${item.status === 'completed' ? `<div class="text-sm bg-slate-50 p-3 rounded-xl text-slate-600"><span class="font-bold text-slate-400 text-xs uppercase mr-2">Ответ:</span> ${item.studentAnswer}</div>` : ''}
+                                    ${item.status === 'completed' ? `
+                                        <div class="text-sm bg-slate-50 p-3 rounded-xl text-slate-600 mb-2"><span class="font-bold text-slate-400 text-xs uppercase mr-2">Ответ:</span> ${item.studentAnswer}</div>
+                                        ${item.accuracy !== undefined ? `<div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider text-right">Точность: ${item.accuracy}%</div>` : ''}
+                                    ` : ''}
                                 </div>
                             `).join('')}
                         </div>
@@ -718,7 +761,6 @@
                     const student = snap.docs.find(d => d.data().phrase === phrase);
                     if (!student) return notify("Неверный код", "error");
                     
-                    // Сохраняем ID студента для авто-входа
                     localStorage.setItem('student_id', student.id);
                     currentStudentId = student.id;
 
@@ -729,18 +771,49 @@
                 } catch (e) { notify("Ошибка", "error"); }
             },
 
+            // === ОБНОВЛЕННАЯ ФУНКЦИЯ ОТПРАВКИ ЗАДАНИЯ ===
             submitTask: async (taskId, correct, deadlineSec) => {
-                const val = document.getElementById(`input-${taskId}`).value.trim().toLowerCase();
+                const val = document.getElementById(`input-${taskId}`).value.trim();
                 if (!val) return notify("Введите ответ", "error");
-                const isCorrect = val === correct && (Date.now() / 1000) <= deadlineSec;
+
+                // Считаем точность по Левенштейну
+                const similarity = calculateSimilarity(val, correct);
+                
+                let score = 1;
+                let message = "";
+
+                if (similarity === 100) {
+                    score = 5;
+                    message = "Идеально! +5 баллов";
+                } else if (similarity >= 75) {
+                    score = 4;
+                    message = "Хорошо! +4 балла";
+                } else if (similarity >= 55) {
+                    score = 3;
+                    message = "Неплохо. +3 балла";
+                } else {
+                    score = 1;
+                    message = "Попытка засчитана. +1 балл";
+                }
+
+                // Проверка времени (чисто для информации, не влияет на оценку)
+                const isLate = (Date.now() / 1000) > deadlineSec;
+
                 try {
                     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', taskId), {
-                        status: 'completed', studentAnswer: val, score: isCorrect ? 5 : 0, completedAt: Date.now()
+                        status: 'completed', 
+                        studentAnswer: val, 
+                        score: score, 
+                        accuracy: similarity, // Сохраняем точность для истории
+                        isLate: isLate,
+                        completedAt: Date.now()
                     });
-                    notify(isCorrect ? "Верно! +5 баллов" : "Принято", "success");
+                    
+                    notify(message, "success");
                     loadStudentTasks();
                 } catch (e) { notify("Ошибка", "error"); }
             },
+            // ============================================
 
             logout: async () => { 
                 localStorage.removeItem('student_id');

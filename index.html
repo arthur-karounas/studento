@@ -454,8 +454,8 @@
                         dp[i][j] = dp[i - 1][j - 1];
                     } else {
                         dp[i][j] = Math.min(
-                            dp[i - 1][j] + 1,     // Удаление
-                            dp[i][j - 1] + 1,     // Вставка
+                            dp[i - 1][j] + 1,      // Удаление
+                            dp[i][j - 1] + 1,      // Вставка
                             dp[i - 1][j - 1] + 1  // Замена
                         );
                     }
@@ -476,10 +476,10 @@
                     j--;
                 } else if (i > 0 && (j === 0 || dp[i][j] === dp[i - 1][j] + 1)) {
                     // Удаление (есть у студента, лишнее) -> Красный зачеркнутый
-                     html = `<span class="bg-rose-200 text-rose-600 line-through px-0.5 rounded mx-0.5 opacity-80 decoration-2 decoration-rose-500">${s[i - 1]}</span>` + html;
+                      html = `<span class="bg-rose-200 text-rose-600 line-through px-0.5 rounded mx-0.5 opacity-80 decoration-2 decoration-rose-500">${s[i - 1]}</span>` + html;
                     i--;
                 } else {
-                     // Замена -> Показываем красным что было, зеленым что надо
+                      // Замена -> Показываем красным что было, зеленым что надо
                     html = `<span class="bg-emerald-200 text-emerald-700 px-0.5 rounded mx-0.5">${c[j - 1]}</span><span class="bg-rose-200 text-rose-600 line-through px-0.5 rounded mx-0.5 opacity-80 decoration-2 decoration-rose-500">${s[i - 1]}</span>` + html;
                     i--; j--;
                 }
@@ -1064,7 +1064,29 @@
             tasks.forEach(t => {
                 const done = t.status === 'completed';
                 if (done) {
-                    html += `<div class="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm"><span class="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black">+${t.score} б.</span><h4 class="font-bold text-slate-500 mt-4 whitespace-pre-wrap">${t.question}</h4></div>`;
+                    html += `
+                        <div class="bg-white rounded-[2rem] p-6 md:p-8 border border-slate-100 shadow-sm relative overflow-hidden">
+                             <div class="absolute top-0 right-0 p-6 opacity-10">
+                                <i data-lucide="check-circle-2" class="w-24 h-24 text-emerald-500"></i>
+                            </div>
+                            <div class="relative z-10">
+                                <div class="flex justify-between items-start mb-4">
+                                    <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-xl text-xs font-black shadow-sm">+${t.score} б.</span>
+                                    <span class="text-xs font-bold text-slate-300">${formatDate(t.completedAt)}</span>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-lg mb-6 whitespace-pre-wrap leading-relaxed">${t.question}</h4>
+                                
+                                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <div class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Результат</div>
+                                        ${t.accuracy !== undefined ? `<div class="text-[10px] font-black uppercase ${t.accuracy >= 75 ? 'text-emerald-500' : 'text-amber-500'} tracking-widest">${t.accuracy}% точности</div>` : ''}
+                                    </div>
+                                    <div class="font-mono text-base leading-relaxed text-slate-700">
+                                        ${getDiffHTML(t.studentAnswer, t.correctAnswer)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
                 } else {
                     const deadlineDate = t.deadline ? t.deadline.toDate() : null;
                     const deadlineStr = deadlineDate ? formatDate(deadlineDate) : '';

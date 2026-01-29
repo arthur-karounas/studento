@@ -766,7 +766,7 @@
 
                     document.getElementById('student-name-display').textContent = student.data().name;
                     document.getElementById('student-phrase-display').textContent = student.data().phrase;
-                    app.showScreen('screen-student-dash');
+                    window.app.showScreen('screen-student-dash');
                     loadStudentTasks();
                 } catch (e) { notify("Ошибка", "error"); }
             },
@@ -1007,7 +1007,22 @@
                 if (done) {
                     html += `<div class="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm"><span class="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black">+${t.score} б.</span><h4 class="font-bold text-slate-500 mt-4 whitespace-pre-wrap">${t.question}</h4></div>`;
                 } else {
-                    html += `<div class="bg-white rounded-[2rem] p-6 md:p-8 border-2 border-amber-100 shadow-xl shadow-amber-50 relative"><h4 class="text-xl font-black text-slate-800 mb-8 whitespace-pre-wrap">${t.question}</h4><input type="text" id="input-${t.id}" class="w-full p-5 bg-slate-50 rounded-2xl outline-none font-bold text-lg mb-4" placeholder="Твой ответ..."><button onclick="app.submitTask('${t.id}', '${t.correctAnswer}', ${t.deadline.seconds})" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black">Сдать</button></div>`;
+                    const deadlineDate = t.deadline ? t.deadline.toDate() : null;
+                    const deadlineStr = deadlineDate ? formatDate(deadlineDate) : '';
+                    const isOverdue = deadlineDate && deadlineDate < new Date();
+                    const deadlineClass = isOverdue ? 'text-rose-500 bg-rose-50' : 'text-amber-500 bg-amber-50';
+
+                    html += `
+                        <div class="bg-white rounded-[2rem] p-6 md:p-8 border-2 border-amber-100 shadow-xl shadow-amber-50 relative group">
+                            <div class="flex justify-between items-center mb-6">
+                                <div class="${deadlineClass} px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                    <i data-lucide="clock" class="w-3 h-3"></i> ${deadlineStr}
+                                </div>
+                            </div>
+                            <h4 class="text-xl font-black text-slate-800 mb-8 whitespace-pre-wrap leading-relaxed">${t.question}</h4>
+                            <input type="text" id="input-${t.id}" class="w-full p-5 bg-slate-50 rounded-2xl outline-none font-bold text-lg mb-4 focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="Твой ответ...">
+                            <button onclick="app.submitTask('${t.id}', '${t.correctAnswer}', ${t.deadline.seconds})" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black hover:bg-indigo-600 transition-all shadow-lg shadow-slate-200">Сдать</button>
+                        </div>`;
                 }
             });
             container.innerHTML = html;

@@ -431,6 +431,62 @@
             return matrix[b.length][a.length];
         }
 
+        // === ГЕНЕРАЦИЯ HTML DIFF ДЛЯ ОШИБОК ===
+        function getDiffHTML(student, correct) {
+            const s = student.trim();
+            const c = correct.trim();
+            
+            // Размеры матрицы
+            const n = s.length;
+            const m = c.length;
+            
+            // Создаем матрицу
+            const dp = Array.from({ length: n + 1 }, () => Array(m + 1).fill(0));
+
+            // Инициализация границ
+            for (let i = 0; i <= n; i++) dp[i][0] = i;
+            for (let j = 0; j <= m; j++) dp[0][j] = j;
+
+            // Заполняем матрицу (без учета регистра для выравнивания)
+            for (let i = 1; i <= n; i++) {
+                for (let j = 1; j <= m; j++) {
+                    if (s[i - 1].toLowerCase() === c[j - 1].toLowerCase()) { 
+                        dp[i][j] = dp[i - 1][j - 1];
+                    } else {
+                        dp[i][j] = Math.min(
+                            dp[i - 1][j] + 1,     // Удаление
+                            dp[i][j - 1] + 1,     // Вставка
+                            dp[i - 1][j - 1] + 1  // Замена
+                        );
+                    }
+                }
+            }
+
+            // Обратный ход для генерации HTML
+            let i = n, j = m;
+            let html = '';
+
+            while (i > 0 || j > 0) {
+                if (i > 0 && j > 0 && s[i - 1].toLowerCase() === c[j - 1].toLowerCase()) {
+                    html = s[i - 1] + html; // Совпадение - просто символ
+                    i--; j--;
+                } else if (j > 0 && (i === 0 || dp[i][j] === dp[i][j - 1] + 1)) {
+                    // Вставка (нужно в правильном, нет у студента) -> Зеленый
+                    html = `<span class="bg-emerald-200 text-emerald-700 px-0.5 rounded mx-0.5">${c[j - 1]}</span>` + html;
+                    j--;
+                } else if (i > 0 && (j === 0 || dp[i][j] === dp[i - 1][j] + 1)) {
+                    // Удаление (есть у студента, лишнее) -> Красный зачеркнутый
+                     html = `<span class="bg-rose-200 text-rose-600 line-through px-0.5 rounded mx-0.5 opacity-80 decoration-2 decoration-rose-500">${s[i - 1]}</span>` + html;
+                    i--;
+                } else {
+                     // Замена -> Показываем красным что было, зеленым что надо
+                    html = `<span class="bg-emerald-200 text-emerald-700 px-0.5 rounded mx-0.5">${c[j - 1]}</span><span class="bg-rose-200 text-rose-600 line-through px-0.5 rounded mx-0.5 opacity-80 decoration-2 decoration-rose-500">${s[i - 1]}</span>` + html;
+                    i--; j--;
+                }
+            }
+            return html;
+        }
+
         function calculateSimilarity(s1, s2) {
             const a = s1.trim().toLowerCase();
             const b = s2.trim().toLowerCase();
@@ -736,7 +792,10 @@
                                         </div>
                                     </div>
                                     ${item.status === 'completed' ? `
-                                        <div class="text-sm bg-slate-50 p-3 rounded-xl text-slate-600 mb-2"><span class="font-bold text-slate-400 text-xs uppercase mr-2">Ответ:</span> ${item.studentAnswer}</div>
+                                        <div class="text-sm bg-slate-50 p-3 rounded-xl text-slate-600 mb-2">
+                                            <span class="font-bold text-slate-400 text-xs uppercase mr-2">Ответ:</span> 
+                                            <span class="font-mono text-base">${getDiffHTML(item.studentAnswer, group.correctAnswer)}</span>
+                                        </div>
                                         ${item.accuracy !== undefined ? `<div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider text-right">Точность: ${item.accuracy}%</div>` : ''}
                                     ` : ''}
                                 </div>

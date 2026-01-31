@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#ffffff">
@@ -14,7 +14,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Убираем жесткий белый цвет, чтобы JS мог его менять */
+        /* Removing hard white color so JS can change it */
         html { 
             background-color: #ffffff; 
             height: 100%;
@@ -26,7 +26,7 @@
             min-height: 100%;
         }
 
-        /* Мобильный хедер: возвращаем размытие, но гарантируем белый подтон */
+        /* Mobile header: bringing back blur, ensuring white undertone */
         .mobile-header-glass {
             position: fixed;
             top: 0;
@@ -47,16 +47,18 @@
         body.modal-open { overflow: hidden; }
         .hidden { display: none !important; }
         
-        /* Активная вкладка для десктопа */
+        /* Active tab for desktop */
         .active-tab { background: #4f46e5; color: white; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2); }
         
-        .student-active-tab { background: #f59e0b; color: white; box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.2); }
+        /* Student active tab is BLUE */
+        .student-active-tab { background: #3b82f6; color: white; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2); }
 
-        /* Активная вкладка для мобильного (нижнее меню) */
+        /* Active tab for mobile (bottom menu) */
         .mobile-active-tab { color: #4f46e5 !important; }
         .mobile-active-tab i { transform: translateY(-4px); transition: transform 0.2s ease; }
         
-        .student-mobile-active-tab { color: #d97706 !important; }
+        /* Student mobile tab is BLUE */
+        .student-mobile-active-tab { color: #2563eb !important; }
         .student-mobile-active-tab i { transform: translateY(-4px); transition: transform 0.2s ease; }
 
         ::-webkit-scrollbar { width: 5px; }
@@ -74,7 +76,7 @@
         .step-node.active { background: #4f46e5; color: white; border-color: #4f46e5; }
         .step-node.completed { background: #10b981; color: white; border-color: #10b981; }
 
-        /* Логика для мобильного Layout (Портретный режим) */
+        /* Mobile Layout Logic (Portrait) */
         @media (orientation: portrait), (max-width: 768px) {
             .desktop-sidebar { display: none !important; }
             .mobile-nav { display: flex !important; }
@@ -97,7 +99,7 @@
             }
         }
         
-        /* Анимация для эмодзи */
+        /* Emoji Animation */
         @keyframes popIn {
             0% { transform: scale(0); }
             80% { transform: scale(1.2); }
@@ -118,11 +120,11 @@
                 <div class="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-6">
                     <i data-lucide="alert-circle" class="w-8 h-8"></i>
                 </div>
-                <h3 class="text-2xl font-extrabold text-slate-800 mb-2">Вы уверены?</h3>
-                <p id="confirm-message" class="text-slate-500 mb-8 text-sm">Это действие нельзя будет отменить.</p>
+                <h3 class="text-2xl font-extrabold text-slate-800 mb-2">Are you sure?</h3>
+                <p id="confirm-message" class="text-slate-500 mb-8 text-sm">This action cannot be undone.</p>
                 <div class="flex gap-3 w-full">
-                    <button id="confirm-cancel" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">Отмена</button>
-                    <button id="confirm-ok" class="flex-1 py-4 bg-rose-500 text-white rounded-2xl font-bold hover:bg-rose-600 transition-all shadow-lg shadow-rose-200">Удалить</button>
+                    <button id="confirm-cancel" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">Cancel</button>
+                    <button id="confirm-ok" class="flex-1 py-4 bg-rose-500 text-white rounded-2xl font-bold hover:bg-rose-600 transition-all shadow-lg shadow-rose-200">Delete</button>
                 </div>
             </div>
         </div>
@@ -136,14 +138,14 @@
                 <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-6 shadow-inner">
                     <i data-lucide="pencil" class="w-8 h-8"></i>
                 </div>
-                <h3 class="text-2xl font-black text-slate-800 mb-2">Изменить балл</h3>
-                <p class="text-slate-500 mb-8 text-sm font-medium">Введите новую оценку для ученика</p>
+                <h3 class="text-2xl font-black text-slate-800 mb-2">Edit Score</h3>
+                <p class="text-slate-500 mb-8 text-sm font-medium">Enter new score for the student</p>
                 
                 <input type="number" id="edit-score-input" min="0" max="10" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none font-black text-center text-3xl text-indigo-600 mb-8 placeholder:text-slate-200" placeholder="0">
 
                 <div class="flex gap-3 w-full">
-                    <button onclick="app.closeEditScoreModal()" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">Отмена</button>
-                    <button onclick="app.saveScore()" class="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">Сохранить</button>
+                    <button onclick="app.closeEditScoreModal()" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">Cancel</button>
+                    <button onclick="app.saveScore()" class="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">Save</button>
                 </div>
             </div>
         </div>
@@ -154,8 +156,8 @@
         <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onclick="app.closeEmojiModal()"></div>
         <div class="relative bg-white w-full max-w-xs rounded-[2rem] shadow-2xl p-6 animate-slide-up">
             <div class="text-center mb-6">
-                <h3 class="text-xl font-black text-slate-800">Реакция</h3>
-                <p id="reaction-hint" class="text-xs text-slate-400 font-bold mt-1">Максимум 2 на весь класс</p>
+                <h3 class="text-xl font-black text-slate-800">Reaction</h3>
+                <p id="reaction-hint" class="text-xs text-slate-400 font-bold mt-1">Max 2 for the whole class</p>
             </div>
             <div class="grid grid-cols-4 gap-3 mb-6">
                 <!-- Emojis will be injected here -->
@@ -168,7 +170,7 @@
                 <button onclick="app.sendReaction('🧠')" class="text-3xl hover:bg-slate-50 p-3 rounded-2xl transition-colors">🧠</button>
                 <button onclick="app.sendReaction('👻')" class="text-3xl hover:bg-slate-50 p-3 rounded-2xl transition-colors">👻</button>
             </div>
-            <button onclick="app.deleteReaction()" id="btn-delete-reaction" class="w-full py-3 bg-rose-50 text-rose-500 rounded-xl font-bold hover:bg-rose-100 transition-colors hidden">Убрать реакцию</button>
+            <button onclick="app.deleteReaction()" id="btn-delete-reaction" class="w-full py-3 bg-rose-50 text-rose-500 rounded-xl font-bold hover:bg-rose-100 transition-colors hidden">Remove reaction</button>
         </div>
     </div>
 
@@ -185,14 +187,14 @@
             </div>
             <div>
                 <h1 class="text-5xl font-black tracking-tight text-slate-900 mb-4">With Lera</h1>
-                <p class="text-slate-500 text-lg leading-relaxed px-4">Удобная и простая среда для обучения!</p>
+                <p class="text-slate-500 text-lg leading-relaxed px-4">A convenient and simple environment for learning!</p>
             </div>
             <div class="space-y-4 px-2">
                 <button onclick="app.showScreen('screen-student-login')" class="w-full py-5 rounded-2xl bg-indigo-600 text-white text-lg font-bold hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 flex items-center justify-center gap-3 group">
-                    Ученик
+                    Student
                 </button>
                 <button onclick="app.showScreen('screen-teacher-login')" class="w-full py-5 rounded-2xl bg-white border-2 border-slate-100 text-slate-700 text-lg font-bold hover:border-indigo-400 transition-all">
-                    Учитель
+                    Teacher
                 </button>
             </div>
         </div>
@@ -202,20 +204,20 @@
     <div id="screen-teacher-login" class="screen hidden min-h-screen flex items-center justify-center p-0 md:p-6 bg-white md:bg-[#FFFFFF]">
         <div class="login-card max-w-sm w-full bg-white rounded-[2.5rem] p-8 md:p-10 md:shadow-2xl md:border md:border-slate-50 animate-slide-up text-center">
             <button onclick="app.showScreen('screen-main')" class="text-slate-400 hover:text-indigo-600 mb-10 flex items-center justify-center gap-2 text-sm font-extrabold transition-colors mx-auto">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i> Назад
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
             </button>
             <div class="mb-10">
                 <div class="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
                     <i data-lucide="graduation-cap" class="w-10 h-10"></i>
                 </div>
-                <h2 class="text-4xl font-black text-slate-800 tracking-tight">Учитель</h2>
+                <h2 class="text-4xl font-black text-slate-800 tracking-tight">Teacher</h2>
             </div>
             <div class="space-y-4">
                 <input type="email" id="t-email" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none font-bold text-center placeholder:text-slate-300" placeholder="Email">
-                <input type="password" id="t-password" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none font-bold text-center placeholder:text-slate-300" placeholder="Пароль">
+                <input type="password" id="t-password" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none font-bold text-center placeholder:text-slate-300" placeholder="Password">
                 <div class="pt-4 space-y-3">
-                    <button onclick="app.teacherLogin()" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-[0.98]">Войти в систему</button>
-                    <button onclick="app.teacherRegister()" class="w-full py-4 text-indigo-600 font-bold hover:bg-indigo-50 rounded-2xl transition-all">Нет аккаунта? Создать</button>
+                    <button onclick="app.teacherLogin()" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-[0.98]">Log In</button>
+                    <button onclick="app.teacherRegister()" class="w-full py-4 text-indigo-600 font-bold hover:bg-indigo-50 rounded-2xl transition-all">No account? Create one</button>
                 </div>
             </div>
         </div>
@@ -224,18 +226,18 @@
     <div id="screen-student-login" class="screen hidden min-h-screen flex items-center justify-center p-0 md:p-6 bg-white md:bg-[#FFFFFF]">
         <div class="login-card max-w-sm w-full bg-white rounded-[2.5rem] p-8 md:p-10 md:shadow-2xl md:border md:border-slate-50 animate-slide-up text-center">
             <button onclick="app.showScreen('screen-main')" class="text-slate-400 hover:text-indigo-600 mb-10 flex items-center justify-center gap-2 text-sm font-extrabold transition-colors mx-auto">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i> Назад
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
             </button>
             <div class="mb-10">
                 <div class="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
                     <i data-lucide="key-round" class="w-10 h-10"></i>
                 </div>
-                <h2 class="text-4xl font-black text-slate-800 tracking-tight">Привет!</h2>
-                <p class="text-slate-400 mt-2 font-semibold leading-relaxed">Введи свои три секретных слова, чтобы войти в аккаунт</p>
+                <h2 class="text-4xl font-black text-slate-800 tracking-tight">Hello!</h2>
+                <p class="text-slate-400 mt-2 font-semibold leading-relaxed">Enter your three secret words to log in</p>
             </div>
             <div class="space-y-6">
-                <input type="text" id="s-phrase" class="w-full px-6 py-6 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white text-center font-black text-xl outline-none transition-all placeholder:font-bold placeholder:text-slate-200" placeholder="слово слово слово">
-                <button onclick="app.studentLogin()" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-[0.98]">Войти в кабинет</button>
+                <input type="text" id="s-phrase" class="w-full px-6 py-6 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white text-center font-black text-xl outline-none transition-all placeholder:font-bold placeholder:text-slate-200" placeholder="word word word">
+                <button onclick="app.studentLogin()" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-[0.98]">Enter Dashboard</button>
             </div>
         </div>
     </div>
@@ -245,7 +247,7 @@
         
         <!-- MOBILE TOP HEADER (Fixed) -->
         <header class="md:hidden mobile-header-glass border-b border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-            <h1 id="mobile-header-title" class="font-black text-2xl text-slate-800">Класс</h1>
+            <h1 id="mobile-header-title" class="font-black text-2xl text-slate-800">Class</h1>
         </header>
 
         <!-- Desktop Sidebar -->
@@ -258,39 +260,39 @@
             </div>
             <nav class="flex-grow space-y-3">
                 <button onclick="app.setTeacherTab('students')" id="tab-btn-students" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold text-slate-400 active-tab">
-                    <i data-lucide="users" class="w-5 h-5"></i> Класс
+                    <i data-lucide="users" class="w-5 h-5"></i> Class
                 </button>
                 <button onclick="app.setTeacherTab('tasks')" id="tab-btn-tasks" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold text-slate-400 hover:bg-slate-50">
-                    <i data-lucide="clipboard-list" class="w-5 h-5"></i> Задания
+                    <i data-lucide="clipboard-list" class="w-5 h-5"></i> Tasks
                 </button>
                 <button onclick="app.setTeacherTab('stats')" id="tab-btn-stats" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold text-slate-400 hover:bg-slate-50">
-                    <i data-lucide="bar-chart-2" class="w-5 h-5"></i> Аналитика
+                    <i data-lucide="bar-chart-2" class="w-5 h-5"></i> Analytics
                 </button>
                 <button onclick="app.setTeacherTab('rating')" id="tab-btn-rating" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold text-slate-400 hover:bg-slate-50">
-                    <i data-lucide="trophy" class="w-5 h-5"></i> Рейтинг
+                    <i data-lucide="trophy" class="w-5 h-5"></i> Leaderboard
                 </button>
             </nav>
             <button onclick="app.logout()" class="mt-auto flex items-center gap-4 px-6 py-4 rounded-2xl text-rose-500 font-bold hover:bg-rose-50 transition-colors">
-                <i data-lucide="log-out" class="w-5 h-5"></i> Выйти
+                <i data-lucide="log-out" class="w-5 h-5"></i> Logout
             </button>
         </aside>
 
         <!-- Mobile Bottom Nav -->
         <nav class="mobile-nav hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-50 flex flex-row justify-around items-center p-2 pb-6 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
             <button onclick="app.setTeacherTab('students')" id="mob-tab-students" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px] mobile-active-tab">
-                <i data-lucide="users" class="w-6 h-6"></i> Класс
+                <i data-lucide="users" class="w-6 h-6"></i> Class
             </button>
             <button onclick="app.setTeacherTab('tasks')" id="mob-tab-tasks" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px]">
-                <i data-lucide="clipboard-list" class="w-6 h-6"></i> Задания
+                <i data-lucide="clipboard-list" class="w-6 h-6"></i> Tasks
             </button>
             <button onclick="app.setTeacherTab('stats')" id="mob-tab-stats" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px]">
-                <i data-lucide="bar-chart-2" class="w-6 h-6"></i> Аналитика
+                <i data-lucide="bar-chart-2" class="w-6 h-6"></i> Analytics
             </button>
             <button onclick="app.setTeacherTab('rating')" id="mob-tab-rating" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px]">
-                <i data-lucide="trophy" class="w-6 h-6"></i> Рейтинг
+                <i data-lucide="trophy" class="w-6 h-6"></i> Leaderboard
             </button>
             <button onclick="app.logout()" class="flex flex-col items-center gap-1 p-3 text-rose-400 font-black text-[10px]">
-                <i data-lucide="log-out" class="w-6 h-6"></i> Выход
+                <i data-lucide="log-out" class="w-6 h-6"></i> Logout
             </button>
         </nav>
 
@@ -298,17 +300,17 @@
             <!-- TAB: STUDENTS -->
             <section id="tab-students" class="hidden">
                 <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 md:mb-10 screen-header">
-                    <h2 class="text-3xl md:text-4xl font-black text-slate-800">Класс</h2>
+                    <h2 class="text-3xl md:text-4xl font-black text-slate-800">Class</h2>
                     <button onclick="app.toggleAddStudentForm()" class="w-full md:w-auto bg-indigo-600 text-white px-8 py-5 rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
-                        <i data-lucide="user-plus" class="w-5 h-5"></i> Добавить ученика
+                        <i data-lucide="user-plus" class="w-5 h-5"></i> Add Student
                     </button>
                 </div>
                 <div id="add-student-form" class="hidden mb-10 bg-white p-6 md:p-8 rounded-[2rem] border-2 border-indigo-100 shadow-sm">
-                    <h3 class="font-black text-xl mb-6">Новый ученик</h3>
+                    <h3 class="font-black text-xl mb-6">New Student</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <input type="text" id="new-name" class="px-6 py-4 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-400 outline-none font-bold" placeholder="Имя Фамилия">
-                        <input type="text" id="new-phrase" class="px-6 py-4 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-400 outline-none font-bold" placeholder="3 слова пароля">
-                        <button onclick="app.createStudent()" class="py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-indigo-600 transition-all">Добавить</button>
+                        <input type="text" id="new-name" class="px-6 py-4 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-400 outline-none font-bold" placeholder="Full Name">
+                        <input type="text" id="new-phrase" class="px-6 py-4 rounded-xl bg-slate-50 border-2 border-transparent focus:border-indigo-400 outline-none font-bold" placeholder="3 secret words">
+                        <button onclick="app.createStudent()" class="py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-indigo-600 transition-all">Add</button>
                     </div>
                 </div>
                 <div id="student-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
@@ -318,17 +320,17 @@
             <section id="tab-tasks" class="hidden">
                 <div class="flex flex-col lg:flex-row justify-between lg:items-center gap-0 mb-6 md:mb-10 screen-header">
                     <div>
-                        <h2 class="text-3xl md:text-4xl font-black text-slate-800">Задания</h2>
-                        <p class="text-slate-500 mt-1 font-medium">Рассылка материалов</p>
+                        <h2 class="text-3xl md:text-4xl font-black text-slate-800">Tasks</h2>
+                        <p class="text-slate-500 mt-1 font-medium">Material distribution</p>
                     </div>
                     <button onclick="app.openNewTaskForm()" class="bg-indigo-600 text-white px-8 py-5 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100">
-                        <i data-lucide="plus-circle" class="w-6 h-6"></i> Новое задание
+                        <i data-lucide="plus-circle" class="w-6 h-6"></i> New Task
                     </button>
                 </div>
                 <div id="task-creation-wizard" class="hidden mb-12">
                     <div class="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100">
                         <div class="bg-slate-900 px-6 py-5 md:px-10 md:py-6 flex justify-between items-center">
-                            <h3 id="wizard-title" class="text-white font-bold">Конструктор задания</h3>
+                            <h3 id="wizard-title" class="text-white font-bold">Task Builder</h3>
                             <button onclick="app.closeNewTaskForm()" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
                         </div>
                         <div class="p-6 md:p-10">
@@ -340,58 +342,58 @@
                                 <div class="step-node relative z-10 w-10 h-10 rounded-full border-4 border-white bg-slate-100 flex items-center justify-center font-black shadow-md" id="node-3">3</div>
                             </div>
                             <div id="wizard-step-1" class="space-y-6 max-w-xl mx-auto">
-                                <textarea id="task-text" rows="4" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none font-medium text-lg resize-none" placeholder="Что нужно сделать?"></textarea>
+                                <textarea id="task-text" rows="4" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none font-medium text-lg resize-none" placeholder="What needs to be done?"></textarea>
                                 
-                                <!-- Выбор типа ответа -->
+                                <!-- Answer Type Selection -->
                                 <div class="bg-slate-100 p-1.5 rounded-2xl flex gap-1">
                                     <label class="flex-1 cursor-pointer">
                                         <input type="radio" name="answerType" value="digits" class="peer sr-only">
                                         <div class="py-3 px-2 rounded-xl text-center text-xs sm:text-sm font-bold text-slate-400 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all flex items-center justify-center gap-2">
-                                            <span>🔢</span> Цифры
+                                            <span>🔢</span> Digits
                                         </div>
                                     </label>
                                     <label class="flex-1 cursor-pointer">
                                         <input type="radio" name="answerType" value="text" class="peer sr-only">
                                         <div class="py-3 px-2 rounded-xl text-center text-xs sm:text-sm font-bold text-slate-400 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all flex items-center justify-center gap-2">
-                                            <span>🔠</span> Буквы
+                                            <span>🔠</span> Letters
                                         </div>
                                     </label>
                                     <label class="flex-1 cursor-pointer">
                                         <input type="radio" name="answerType" value="mixed" class="peer sr-only" checked>
                                         <div class="py-3 px-2 rounded-xl text-center text-xs sm:text-sm font-bold text-slate-400 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all flex items-center justify-center gap-2">
-                                            <span>💡</span> Смешанный
+                                            <span>💡</span> Mixed
                                         </div>
                                     </label>
                                 </div>
 
-                                <input type="text" id="task-answer" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none font-bold" placeholder="Эталонный ответ">
-                                <button onclick="app.nextWizardStep(2)" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-lg">Далее</button>
+                                <input type="text" id="task-answer" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none font-bold" placeholder="Correct Answer">
+                                <button onclick="app.nextWizardStep(2)" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-lg">Next</button>
                             </div>
                             <div id="wizard-step-2" class="hidden space-y-6 max-w-2xl mx-auto">
                                 <div id="student-checklist" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1"></div>
                                 <div class="flex gap-3">
-                                    <button onclick="app.nextWizardStep(1)" class="flex-1 py-5 bg-slate-100 text-slate-600 rounded-2xl font-bold">Назад</button>
-                                    <button onclick="app.nextWizardStep(3)" class="flex-[2] py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-lg">Далее</button>
+                                    <button onclick="app.nextWizardStep(1)" class="flex-1 py-5 bg-slate-100 text-slate-600 rounded-2xl font-bold">Back</button>
+                                    <button onclick="app.nextWizardStep(3)" class="flex-[2] py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-lg">Next</button>
                                 </div>
                             </div>
                             <div id="wizard-step-3" class="hidden space-y-8 max-w-xl mx-auto">
                                 <div class="space-y-6">
                                     <div>
-                                        <label class="block text-sm font-bold text-slate-400 mb-2 ml-2 uppercase tracking-wide">Дата публикации</label>
+                                        <label class="block text-sm font-bold text-slate-400 mb-2 ml-2 uppercase tracking-wide">Publish Date</label>
                                         <div class="relative">
-                                            <input type="text" onfocus="(this.type='datetime-local')" onblur="if(!this.value)this.type='text'" id="task-publish-date" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 font-bold text-slate-700" placeholder="Выберите дату и время">
-                                            <div class="text-xs text-slate-400 mt-2 ml-2">Оставьте пустым, чтобы опубликовать сейчас</div>
+                                            <input type="text" onfocus="(this.type='datetime-local')" onblur="if(!this.value)this.type='text'" id="task-publish-date" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 font-bold text-slate-700" placeholder="Select date and time">
+                                            <div class="text-xs text-slate-400 mt-2 ml-2">Leave empty to publish now</div>
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-bold text-slate-400 mb-2 ml-2 uppercase tracking-wide">Крайний срок сдачи</label>
-                                        <input type="text" onfocus="(this.type='datetime-local')" onblur="if(!this.value)this.type='text'" id="task-deadline" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 font-bold text-slate-700" placeholder="Выберите дату и время (не влияет на оценку)">
+                                        <label class="block text-sm font-bold text-slate-400 mb-2 ml-2 uppercase tracking-wide">Deadline</label>
+                                        <input type="text" onfocus="(this.type='datetime-local')" onblur="if(!this.value)this.type='text'" id="task-deadline" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 font-bold text-slate-700" placeholder="Select date and time (does not affect grading)">
                                     </div>
                                 </div>
                                 
                                 <div class="flex gap-3 pt-4">
-                                    <button onclick="app.nextWizardStep(2)" class="flex-1 py-5 bg-slate-100 text-slate-600 rounded-2xl font-bold">Назад</button>
-                                    <button onclick="app.assignTask()" class="flex-[2] py-5 bg-emerald-500 text-white rounded-2xl font-black shadow-xl">Опубликовать</button>
+                                    <button onclick="app.nextWizardStep(2)" class="flex-1 py-5 bg-slate-100 text-slate-600 rounded-2xl font-bold">Back</button>
+                                    <button onclick="app.assignTask()" class="flex-[2] py-5 bg-emerald-500 text-white rounded-2xl font-black shadow-xl">Publish</button>
                                 </div>
                             </div>
                         </div>
@@ -404,15 +406,15 @@
             <section id="tab-stats" class="hidden">
                 <div class="hidden md:flex flex-col md:flex-row justify-between items-center gap-4 md:mb-10 screen-header">
                     <div>
-                        <h2 class="text-3xl md:text-4xl font-black text-slate-800">Успеваемость</h2>
-                        <p class="text-slate-500 mt-1 font-medium">Анализ активности и прогресса класса</p>
+                        <h2 class="text-3xl md:text-4xl font-black text-slate-800">Performance</h2>
+                        <p class="text-slate-500 mt-1 font-medium">Class activity and progress analysis</p>
                     </div>
                 </div>
                 <div id="quick-stats" class="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-10"></div>
                 <div class="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-slate-100">
                     <div class="h-[300px] md:h-[450px] mb-12"><canvas id="statsChart"></canvas></div>
                     <div class="border-t border-slate-50 pt-10">
-                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 ml-2">Рейтинг учеников</h3>
+                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 ml-2">Student Rankings</h3>
                         <div id="stats-summary" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"></div>
                     </div>
                 </div>
@@ -421,8 +423,8 @@
             <!-- TAB: RATING (Teacher) -->
             <section id="tab-rating" class="hidden">
                  <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-10 screen-header">
-                    <h2 class="text-3xl md:text-4xl font-black text-slate-800">Рейтинг</h2>
-                    <p class="text-slate-400 font-medium">Стена почета класса</p>
+                    <h2 class="text-3xl md:text-4xl font-black text-slate-800">Leaderboard</h2>
+                    <p class="text-slate-400 font-medium">Class Hall of Fame</p>
                 </div>
                 <div id="teacher-rating-list" class="max-w-2xl mx-auto space-y-4"></div>
             </section>
@@ -434,55 +436,55 @@
         
         <!-- MOBILE TOP HEADER (Fixed) -->
         <header class="md:hidden mobile-header-glass border-b border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-            <h1 id="mobile-student-title" class="font-black text-2xl text-slate-800">Мои уроки</h1>
+            <h1 id="mobile-student-title" class="font-black text-2xl text-slate-800">My Lessons</h1>
         </header>
 
         <aside class="desktop-sidebar w-80 bg-white border-r border-slate-100 p-8 flex flex-col shrink-0 overflow-y-auto">
-            <div class="flex items-center gap-3 mb-12 font-black text-2xl uppercase tracking-widest text-amber-600 italic"><i data-lucide="backpack"></i> With Lera</div>
+            <div class="flex items-center gap-3 mb-12 font-black text-2xl uppercase tracking-widest text-blue-600 italic"><i data-lucide="backpack"></i> With Lera</div>
             <nav class="flex-grow space-y-3">
-                <button onclick="app.setStudentTab('lessons')" id="st-tab-btn-lessons" class="w-full px-6 py-4 rounded-2xl font-black flex items-center gap-4 shadow-sm student-active-tab transition-all hover:bg-amber-50">
-                    <i data-lucide="book-open"></i> Мои уроки
+                <button onclick="app.setStudentTab('lessons')" id="st-tab-btn-lessons" class="w-full px-6 py-4 rounded-2xl font-black flex items-center gap-4 shadow-sm student-active-tab transition-all hover:bg-blue-50">
+                    <i data-lucide="book-open"></i> My Lessons
                 </button>
-                <button onclick="app.setStudentTab('rating')" id="st-tab-btn-rating" class="w-full px-6 py-4 rounded-2xl font-black flex items-center gap-4 text-slate-400 transition-all hover:bg-amber-50 hover:text-amber-600">
-                    <i data-lucide="trophy"></i> Рейтинг
+                <button onclick="app.setStudentTab('rating')" id="st-tab-btn-rating" class="w-full px-6 py-4 rounded-2xl font-black flex items-center gap-4 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
+                    <i data-lucide="trophy"></i> Leaderboard
                 </button>
             </nav>
             <div class="mt-auto pt-8 border-t border-slate-50">
-                <div class="bg-amber-50 rounded-[2rem] p-6 mb-8 border border-amber-100">
+                <div class="bg-blue-50 rounded-[2rem] p-6 mb-8 border border-blue-100">
                     <p id="student-name-display" class="font-black text-slate-900 truncate text-lg">...</p>
-                    <p id="student-phrase-display" class="text-xs text-amber-700 opacity-60 font-mono mb-4"></p>
+                    <p id="student-phrase-display" class="text-xs text-blue-700 opacity-60 font-mono mb-4"></p>
                     <div class="bg-white px-5 py-3 rounded-2xl flex justify-between items-center shadow-sm">
-                        <span id="student-total-score" class="font-black text-amber-700 text-2xl">0</span>
+                        <span id="student-total-score" class="font-black text-blue-700 text-2xl">0</span>
                     </div>
                 </div>
-                <button onclick="app.logout()" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-400 font-bold">Выйти</button>
+                <button onclick="app.logout()" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-400 font-bold">Logout</button>
             </div>
         </aside>
         
         <nav class="mobile-nav hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-50 flex flex-row justify-around items-center p-2 pb-6 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
-            <button onclick="app.setStudentTab('lessons')" id="st-mob-tab-lessons" class="flex flex-col items-center gap-1 p-3 text-amber-500 font-black text-[10px] student-mobile-active-tab">
-                <i data-lucide="book-open" class="w-6 h-6"></i> Уроки
+            <button onclick="app.setStudentTab('lessons')" id="st-mob-tab-lessons" class="flex flex-col items-center gap-1 p-3 text-blue-500 font-black text-[10px] student-mobile-active-tab">
+                <i data-lucide="book-open" class="w-6 h-6"></i> Lessons
             </button>
             <button onclick="app.setStudentTab('rating')" id="st-mob-tab-rating" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px]">
-                <i data-lucide="trophy" class="w-6 h-6"></i> Рейтинг
+                <i data-lucide="trophy" class="w-6 h-6"></i> Leaderboard
             </button>
             <button onclick="app.logout()" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px]">
-                <i data-lucide="log-out" class="w-6 h-6"></i> Выход
+                <i data-lucide="log-out" class="w-6 h-6"></i> Logout
             </button>
         </nav>
 
         <main class="main-content flex-grow p-6 md:p-12 overflow-y-auto bg-[#F8FAFC]">
             <!-- STUDENT TAB: LESSONS -->
             <section id="tab-student-lessons">
-                <h2 class="text-3xl md:text-4xl font-black mb-8 text-slate-800 md:block hidden">Уроки</h2>
+                <h2 class="text-3xl md:text-4xl font-black mb-8 text-slate-800 md:block hidden">Lessons</h2>
                 <div id="student-tasks-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
             </section>
 
             <!-- STUDENT TAB: RATING -->
             <section id="tab-student-rating" class="hidden">
                  <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-10 screen-header">
-                    <h2 class="text-3xl md:text-4xl font-black text-slate-800">Зал славы</h2>
-                    <p class="text-slate-400 font-medium">Анонимный рейтинг класса</p>
+                    <h2 class="text-3xl md:text-4xl font-black text-slate-800">Hall of Fame</h2>
+                    <p class="text-slate-400 font-medium">Anonymous class leaderboard</p>
                 </div>
                 <div id="student-rating-list" class="max-w-2xl mx-auto space-y-4"></div>
             </section>
@@ -503,42 +505,42 @@
         const db = getFirestore(appFb);
 
         let currentStudentId = null;
-        let currentStudentData = null; // Для хранения инфо о студенте (и учителе)
+        let currentStudentData = null; // Stores info about student (and teacher)
         let groupedTasks = []; 
         let drafts = [];
         let editingDraftId = null;
         let statsChart = null;
         let currentEditingTaskId = null;
-        let currentReactionTargetId = null; // Для хранения ID ученика, которому отправляем реакцию
+        let currentReactionTargetId = null; // Stores ID of the student we are sending reaction to
 
-        // === ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ СРАВНЕНИЯ СТРОК (Алгоритм Левенштейна) ===
+        // === GLOBAL STRING COMPARISON FUNCTIONS (Levenshtein Algorithm) ===
         function levenshtein(a, b) {
             if (a.length === 0) return b.length;
             if (b.length === 0) return a.length;
 
             const matrix = [];
 
-            // Инициализация первой колонки
+            // Initialize first column
             for (let i = 0; i <= b.length; i++) {
                 matrix[i] = [i];
             }
 
-            // Инициализация первой строки
+            // Initialize first row
             for (let j = 0; j <= a.length; j++) {
                 matrix[0][j] = j;
             }
 
-            // Заполнение матрицы
+            // Fill matrix
             for (let i = 1; i <= b.length; i++) {
                 for (let j = 1; j <= a.length; j++) {
                     if (b.charAt(i - 1) === a.charAt(j - 1)) {
                         matrix[i][j] = matrix[i - 1][j - 1];
                     } else {
                         matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1, // замена
+                            matrix[i - 1][j - 1] + 1, // substitution
                             Math.min(
-                                matrix[i][j - 1] + 1, // вставка
-                                matrix[i - 1][j] + 1 // удаление
+                                matrix[i][j - 1] + 1, // insertion
+                                matrix[i - 1][j] + 1 // deletion
                             )
                         );
                     }
@@ -548,55 +550,55 @@
             return matrix[b.length][a.length];
         }
 
-        // === ГЕНЕРАЦИЯ HTML DIFF ДЛЯ ОШИБОК ===
+        // === GENERATE HTML DIFF FOR ERRORS ===
         function getDiffHTML(student, correct) {
             const s = student.trim();
             const c = correct.trim();
             
-            // Размеры матрицы
+            // Matrix dimensions
             const n = s.length;
             const m = c.length;
             
-            // Создаем матрицу
+            // Create matrix
             const dp = Array.from({ length: n + 1 }, () => Array(m + 1).fill(0));
 
-            // Инициализация границ
+            // Initialize boundaries
             for (let i = 0; i <= n; i++) dp[i][0] = i;
             for (let j = 0; j <= m; j++) dp[0][j] = j;
 
-            // Заполняем матрицу (без учета регистра для выравнивания)
+            // Fill matrix (case-insensitive for alignment)
             for (let i = 1; i <= n; i++) {
                 for (let j = 1; j <= m; j++) {
                     if (s[i - 1].toLowerCase() === c[j - 1].toLowerCase()) { 
                         dp[i][j] = dp[i - 1][j - 1];
                     } else {
                         dp[i][j] = Math.min(
-                            dp[i - 1][j] + 1,      // Удаление
-                            dp[i][j - 1] + 1,      // Вставка
-                            dp[i - 1][j - 1] + 1  // Замена
+                            dp[i - 1][j] + 1,      // Deletion
+                            dp[i][j - 1] + 1,      // Insertion
+                            dp[i - 1][j - 1] + 1  // Substitution
                         );
                     }
                 }
             }
 
-            // Обратный ход для генерации HTML
+            // Backtrack to generate HTML
             let i = n, j = m;
             let html = '';
 
             while (i > 0 || j > 0) {
                 if (i > 0 && j > 0 && s[i - 1].toLowerCase() === c[j - 1].toLowerCase()) {
-                    html = s[i - 1] + html; // Совпадение - просто символ
+                    html = s[i - 1] + html; // Match - just the character
                     i--; j--;
                 } else if (j > 0 && (i === 0 || dp[i][j] === dp[i][j - 1] + 1)) {
-                    // Вставка (нужно в правильном, нет у студента) -> Зеленый
+                    // Insertion (needed in correct, missing in student) -> Green
                     html = `<span class="bg-emerald-200 text-emerald-700 px-0.5 rounded mx-0.5">${c[j - 1]}</span>` + html;
                     j--;
                 } else if (i > 0 && (j === 0 || dp[i][j] === dp[i - 1][j] + 1)) {
-                    // Удаление (есть у студента, лишнее) -> Красный зачеркнутый
+                    // Deletion (present in student, extra) -> Red strikethrough
                       html = `<span class="bg-rose-200 text-rose-600 line-through px-0.5 rounded mx-0.5 opacity-80 decoration-2 decoration-rose-500">${s[i - 1]}</span>` + html;
                     i--;
                 } else {
-                      // Замена -> Показываем красным что было, зеленым что надо
+                      // Substitution -> Show red what was, green what should be
                     html = `<span class="bg-emerald-200 text-emerald-700 px-0.5 rounded mx-0.5">${c[j - 1]}</span><span class="bg-rose-200 text-rose-600 line-through px-0.5 rounded mx-0.5 opacity-80 decoration-2 decoration-rose-500">${s[i - 1]}</span>` + html;
                     i--; j--;
                 }
@@ -608,11 +610,11 @@
             const a = s1.trim().toLowerCase();
             const b = s2.trim().toLowerCase();
             
-            // Если строки идентичны
+            // If strings are identical
             if (a === b) return 100;
 
             const maxLength = Math.max(a.length, b.length);
-            if (maxLength === 0) return 100; // Обе пустые
+            if (maxLength === 0) return 100; // Both empty
 
             const distance = levenshtein(a, b);
             const similarity = (1 - distance / maxLength) * 100;
@@ -623,7 +625,7 @@
         const formatDate = (inputDate) => {
             if (!inputDate) return "";
             const d = new Date(inputDate);
-            return d.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+            return d.toLocaleString('en-US', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
         };
 
         const notify = (text, type = 'info') => {
@@ -646,16 +648,16 @@
                 document.getElementById('screen-main').classList.add('hidden');
                 document.getElementById(id).classList.remove('hidden');
                 
-                // === ДИНАМИЧЕСКИЙ ФОН ДЛЯ OVERSCROLL ===
-                // Если мы на дашборде, красим "подложку" в серый
+                // === DYNAMIC BACKGROUND FOR OVERSCROLL ===
+                // If on dashboard, paint "background" gray
                 if (id === 'screen-teacher-dash' || id === 'screen-student-dash') {
                     document.documentElement.style.backgroundColor = '#F8FAFC';
                     document.body.style.backgroundColor = '#F8FAFC';
-                    // Меняем цвет статус-бара в браузере (для Android Chrome и т.д.)
+                    // Change status bar color in browser (for Android Chrome etc.)
                     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
                     if (metaThemeColor) metaThemeColor.setAttribute('content', '#F8FAFC');
                 } else {
-                    // Если на логине/главной, красим в белый
+                    // If on login/main, paint white
                     document.documentElement.style.backgroundColor = '#ffffff';
                     document.body.style.backgroundColor = '#ffffff';
                     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
@@ -682,7 +684,7 @@
                 }
 
                 const tabs = ['students', 'tasks', 'stats', 'rating'];
-                const titles = { students: 'Класс', tasks: 'Задания', stats: 'Аналитика', rating: 'Рейтинг' };
+                const titles = { students: 'Class', tasks: 'Tasks', stats: 'Analytics', rating: 'Leaderboard' };
                 
                 const mobileTitle = document.getElementById('mobile-header-title');
                 if (mobileTitle) mobileTitle.textContent = titles[tab];
@@ -716,11 +718,11 @@
 
             setStudentTab: (tab) => {
                 if (activeStudentTab === tab && !document.getElementById(`tab-student-${tab}`).classList.contains('hidden')) {
-                     return;
+                      return;
                 }
                 
                 const tabs = ['lessons', 'rating'];
-                const titles = { lessons: 'Мои уроки', rating: 'Рейтинг' };
+                const titles = { lessons: 'My Lessons', rating: 'Leaderboard' };
 
                 const mobileTitle = document.getElementById('mobile-student-title');
                 if (mobileTitle) mobileTitle.textContent = titles[tab];
@@ -730,10 +732,10 @@
                     const isVisible = t === tab;
                     
                     if (isVisible) {
-                         el.classList.remove('hidden');
-                         el.classList.remove('animate-slide-up');
-                         void el.offsetWidth;
-                         el.classList.add('animate-slide-up');
+                          el.classList.remove('hidden');
+                          el.classList.remove('animate-slide-up');
+                          void el.offsetWidth;
+                          el.classList.add('animate-slide-up');
                     } else {
                         el.classList.add('hidden');
                     }
@@ -741,10 +743,10 @@
                     const btn = document.getElementById(`st-tab-btn-${t}`);
                     if (isVisible) {
                         btn.classList.add('student-active-tab');
-                        btn.classList.remove('text-slate-400', 'hover:bg-amber-50', 'hover:text-amber-600');
+                        btn.classList.remove('text-slate-400', 'hover:bg-blue-50', 'hover:text-blue-600');
                     } else {
                         btn.classList.remove('student-active-tab');
-                        btn.classList.add('text-slate-400', 'hover:bg-amber-50', 'hover:text-amber-600');
+                        btn.classList.add('text-slate-400', 'hover:bg-blue-50', 'hover:text-blue-600');
                     }
 
                     const mobBtn = document.getElementById(`st-mob-tab-${t}`);
@@ -773,7 +775,7 @@
                 document.querySelector('input[name="answerType"][value="mixed"]').checked = true; // Default
                 document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = false);
 
-                document.getElementById('wizard-title').textContent = draftId ? "Редактирование черновика" : "Конструктор задания";
+                document.getElementById('wizard-title').textContent = draftId ? "Edit Draft" : "Task Builder";
 
                 if (draftId) {
                     const draft = drafts.find(d => d.id === draftId);
@@ -829,10 +831,10 @@
                         } else {
                             await addDoc(getColPath('drafts'), draftData);
                         }
-                        notify("Сохранено как черновик", "info");
+                        notify("Saved as draft", "info");
                     } catch (e) {
                         console.error(e);
-                        notify("Ошибка сохранения черновика", "error");
+                        notify("Error saving draft", "error");
                     }
                 }
 
@@ -856,7 +858,7 @@
                     await signInWithEmailAndPassword(auth, document.getElementById('t-email').value, document.getElementById('t-password').value);
                     window.app.showScreen('screen-teacher-dash');
                     window.app.setTeacherTab('students');
-                } catch (e) { notify("Ошибка доступа", "error"); }
+                } catch (e) { notify("Access error", "error"); }
             },
 
             teacherRegister: async () => {
@@ -864,24 +866,24 @@
                     await createUserWithEmailAndPassword(auth, document.getElementById('t-email').value, document.getElementById('t-password').value);
                     window.app.showScreen('screen-teacher-dash');
                     window.app.setTeacherTab('students');
-                } catch (e) { notify("Ошибка регистрации", "error"); }
+                } catch (e) { notify("Registration error", "error"); }
             },
 
             createStudent: async () => {
                 const name = document.getElementById('new-name').value;
                 const phrase = document.getElementById('new-phrase').value.trim().toLowerCase();
-                if (!name || phrase.split(/\s+/).length !== 3) return notify("Нужно имя и 3 слова", "error");
+                if (!name || phrase.split(/\s+/).length !== 3) return notify("Need name and 3 words", "error");
                 try {
                     await addDoc(getColPath('students'), { teacherId: auth.currentUser.uid, name, phrase, createdAt: Date.now() });
                     document.getElementById('new-name').value = ''; document.getElementById('new-phrase').value = '';
-                    notify("Готово", "success");
+                    notify("Done", "success");
                     loadMyStudents();
                     app.toggleAddStudentForm();
-                } catch (e) { notify("Ошибка", "error"); }
+                } catch (e) { notify("Error", "error"); }
             },
 
             deleteStudent: async (sid) => {
-                if(await app.askConfirm("Удалить?")) {
+                if(await app.askConfirm("Delete?")) {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', sid));
                     loadMyStudents();
                 }
@@ -895,7 +897,7 @@
                 const answerType = document.querySelector('input[name="answerType"]:checked').value;
                 const checked = document.querySelectorAll('.student-checkbox:checked');
                 
-                if (!text || !answer || !deadlineVal || checked.length === 0) return notify("Заполните всё", "error");
+                if (!text || !answer || !deadlineVal || checked.length === 0) return notify("Fill in everything", "error");
                 
                 const groupId = Date.now().toString();
                 const publishAt = publishVal ? Timestamp.fromDate(new Date(publishVal)) : Timestamp.now();
@@ -920,14 +922,14 @@
                     document.getElementById('task-text').value = ''; 
                     editingDraftId = null;
 
-                    notify("Задание отправлено", "success");
+                    notify("Task assigned", "success");
                     document.getElementById('task-creation-wizard').classList.add('hidden');
                     loadTeacherTasks();
-                } catch (e) { console.error(e); notify("Ошибка", "error"); }
+                } catch (e) { console.error(e); notify("Error", "error"); }
             },
 
             deleteTaskGroup: async (groupId) => {
-                if(await app.askConfirm("Удалить у всех?")) {
+                if(await app.askConfirm("Delete for everyone?")) {
                     const group = groupedTasks.find(g => g.groupId === groupId);
                     await Promise.all(group.items.map(item => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', item.id))));
                     loadTeacherTasks();
@@ -935,13 +937,13 @@
             },
 
             deleteDraft: async (draftId) => {
-                 if(await app.askConfirm("Удалить черновик?")) {
+                 if(await app.askConfirm("Delete draft?")) {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'drafts', draftId));
                     loadTeacherTasks();
                 }
             },
 
-            // === ОБНОВЛЕННАЯ ЛОГИКА РЕДАКТИРОВАНИЯ БАЛЛА (Через кастомное модальное окно) ===
+            // === SCORE EDIT LOGIC ===
             editScore: (taskId, currentScore) => {
                 currentEditingTaskId = taskId;
                 document.getElementById('edit-score-input').value = currentScore;
@@ -955,19 +957,19 @@
 
             saveScore: async () => {
                 const newScore = parseInt(document.getElementById('edit-score-input').value, 10);
-                if (isNaN(newScore)) return notify("Введите число", "error");
+                if (isNaN(newScore)) return notify("Enter a number", "error");
 
                 try {
                     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', currentEditingTaskId), {
                         score: newScore
                     });
-                    notify("Оценка обновлена", "success");
+                    notify("Score updated", "success");
                     app.closeEditScoreModal();
                     
                     await loadTeacherTasks(); // Reload underlying list
                 } catch (e) {
                     console.error(e);
-                    notify("Ошибка обновления", "error");
+                    notify("Update error", "error");
                 }
             },
             
@@ -1008,25 +1010,25 @@
                 }
             },
             
-            // === ЛОГИКА РЕАКЦИЙ ===
+            // === REACTION LOGIC ===
             openEmojiModal: (targetId, hasReaction) => {
                 currentReactionTargetId = targetId;
                 const btnDelete = document.getElementById('btn-delete-reaction');
                 const hint = document.getElementById('reaction-hint');
                 
-                // Проверяем, учитель ли это
+                // Check if teacher
                 const isTeacher = !currentStudentId && auth.currentUser;
                 
                 if (isTeacher) {
-                    hint.textContent = "Награда от учителя (1 на ученика)";
+                    hint.textContent = "Teacher reward (1 per student)";
                 } else {
-                    hint.textContent = "Максимум 2 на весь класс";
+                    hint.textContent = "Max 2 for the whole class";
                 }
                 
                 if (hasReaction) {
-                     btnDelete.classList.remove('hidden');
+                      btnDelete.classList.remove('hidden');
                 } else {
-                     btnDelete.classList.add('hidden');
+                      btnDelete.classList.add('hidden');
                 }
                 document.getElementById('modal-emoji').classList.remove('hidden');
             },
@@ -1037,7 +1039,7 @@
             },
             
             sendReaction: async (emoji) => {
-                // Определяем отправителя (ученик или учитель)
+                // Determine sender (student or teacher)
                 let senderId = currentStudentId;
                 let isTeacher = false;
                 
@@ -1051,35 +1053,35 @@
                 const reactionId = `${senderId}_${currentReactionTargetId}`;
                 
                 try {
-                    // 1. Проверяем лимиты
+                    // 1. Check limits
                     const snap = await getDocs(getColPath('reactions'));
                     const myReactions = snap.docs
                         .map(d => d.data())
                         .filter(r => r.fromStudentId === senderId);
                         
-                    // Ищем существующую реакцию этому человеку
+                    // Look for existing reaction to this target
                     const existingToTarget = myReactions.find(r => r.toStudentId === currentReactionTargetId);
                     
                     if (!isTeacher) {
-                        // Для учеников: лимит 2 всего
+                        // For students: limit 2 total
                          if (!existingToTarget && myReactions.length >= 2) {
-                            notify("Можно отправить максимум 2 реакции!", "error");
+                            notify("Max 2 reactions allowed!", "error");
                             app.closeEmojiModal();
                             return;
                         }
                     } 
-                    // Для учителей лимит не проверяем глобально, только заменяем старую реакцию этому же ученику (что произойдет автоматически по ID документа)
+                    // Teachers limit not checked globally, only replacing old reaction for same student
 
-                    // 2. Сохраняем/Обновляем реакцию
+                    // 2. Save/Update reaction
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'reactions', reactionId), {
                         fromStudentId: senderId,
                         toStudentId: currentReactionTargetId,
                         emoji: emoji,
                         timestamp: Date.now(),
-                        isTeacher: isTeacher // Флаг учителя
+                        isTeacher: isTeacher // Teacher flag
                     });
                     
-                    notify("Реакция отправлена!", "success");
+                    notify("Reaction sent!", "success");
                     app.closeEmojiModal();
                     
                     if (isTeacher) {
@@ -1089,7 +1091,7 @@
                     }
                 } catch (e) {
                     console.error(e);
-                    notify("Ошибка отправки", "error");
+                    notify("Send error", "error");
                 }
             },
             
@@ -1105,13 +1107,13 @@
                 const reactionId = `${senderId}_${currentReactionTargetId}`;
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'reactions', reactionId));
-                    notify("Реакция удалена", "success");
+                    notify("Reaction removed", "success");
                     app.closeEmojiModal();
                     
                     if (isTeacher) loadTeacherLeaderboard();
                     else loadStudentLeaderboard();
                 } catch(e) {
-                    notify("Ошибка удаления", "error");
+                    notify("Delete error", "error");
                 }
             },
 
@@ -1120,7 +1122,7 @@
                 try {
                     const snap = await getDocs(getColPath('students'));
                     const student = snap.docs.find(d => d.data().phrase === phrase);
-                    if (!student) return notify("Неверный код", "error");
+                    if (!student) return notify("Invalid code", "error");
                     
                     localStorage.setItem('student_id', student.id);
                     currentStudentId = student.id;
@@ -1130,15 +1132,15 @@
                     document.getElementById('student-phrase-display').textContent = student.data().phrase;
                     window.app.showScreen('screen-student-dash');
                     loadStudentTasks();
-                } catch (e) { notify("Ошибка", "error"); }
+                } catch (e) { notify("Error", "error"); }
             },
 
-            // === ОБНОВЛЕННАЯ ФУНКЦИЯ ОТПРАВКИ ЗАДАНИЯ ===
+            // === TASK SUBMISSION ===
             submitTask: async (taskId, correct, deadlineSec) => {
                 const val = document.getElementById(`input-${taskId}`).value.trim();
-                if (!val) return notify("Введите ответ", "error");
+                if (!val) return notify("Enter answer", "error");
 
-                // Считаем точность по Левенштейну
+                // Calculate similarity
                 const similarity = calculateSimilarity(val, correct);
                 
                 let score = 1;
@@ -1146,19 +1148,19 @@
 
                 if (similarity === 100) {
                     score = 5;
-                    message = "Идеально! +5 баллов";
+                    message = "Perfect! +5 points";
                 } else if (similarity >= 75) {
                     score = 4;
-                    message = "Хорошо! +4 балла";
+                    message = "Good! +4 points";
                 } else if (similarity >= 55) {
                     score = 3;
-                    message = "Неплохо. +3 балла";
+                    message = "Not bad. +3 points";
                 } else {
                     score = 1;
-                    message = "Попытка засчитана. +1 балл";
+                    message = "Attempt counted. +1 point";
                 }
 
-                // Проверка времени (чисто для информации, не влияет на оценку)
+                // Check time
                 const isLate = (Date.now() / 1000) > deadlineSec;
 
                 try {
@@ -1166,14 +1168,14 @@
                         status: 'completed', 
                         studentAnswer: val, 
                         score: score, 
-                        accuracy: similarity, // Сохраняем точность для истории
+                        accuracy: similarity, // Save accuracy
                         isLate: isLate,
                         completedAt: Date.now()
                     });
                     
                     notify(message, "success");
                     loadStudentTasks();
-                } catch (e) { notify("Ошибка", "error"); }
+                } catch (e) { notify("Error", "error"); }
             },
             // ============================================
 
@@ -1203,7 +1205,7 @@
                         <button onclick="app.deleteStudent('${s.id}')" class="absolute top-4 right-4 text-slate-200 hover:text-rose-500 transition-colors p-2"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
                         <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-xl font-black mb-4">${s.name[0]}</div>
                         <h4 class="font-black text-slate-800 truncate w-full px-4">${s.name}</h4>
-                        <div class="bg-indigo-600 text-white px-4 py-1.5 rounded-full text-xs font-black shadow-lg shadow-indigo-100 mt-4">${total} б.</div>
+                        <div class="bg-indigo-600 text-white px-4 py-1.5 rounded-full text-xs font-black shadow-lg shadow-indigo-100 mt-4">${total} pts.</div>
                     </div>`;
                 checklistHtml += `
                     <label class="group flex items-center gap-4 p-5 bg-white rounded-2xl border-2 border-slate-50 cursor-pointer hover:border-indigo-400 transition-all">
@@ -1236,7 +1238,7 @@
             groupedTasks = Object.values(groupsMap).sort((a, b) => b.createdAt - a.createdAt);
             
             if (groupedTasks.length === 0 && drafts.length === 0) {
-                container.innerHTML = '<div class="col-span-full py-20 text-center text-slate-300 font-bold italic">Пусто</div>';
+                container.innerHTML = '<div class="col-span-full py-20 text-center text-slate-300 font-bold italic">Empty</div>';
                 return;
             }
 
@@ -1246,14 +1248,14 @@
             drafts.sort((a, b) => b.updatedAt - a.updatedAt).forEach(d => {
                 html += `
                     <div class="task-card bg-slate-50 p-6 rounded-[2rem] border-2 border-dashed border-slate-200 cursor-pointer relative group" onclick="app.openNewTaskForm('${d.id}')">
-                         <div class="absolute top-6 right-14 bg-slate-200 text-slate-500 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider">Черновик</div>
+                         <div class="absolute top-6 right-14 bg-slate-200 text-slate-500 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider">Draft</div>
                         <div class="flex justify-between items-start mb-4">
-                             <div class="text-[10px] text-slate-400 font-black uppercase">Изменен: ${new Date(d.updatedAt).toLocaleDateString()}</div>
+                             <div class="text-[10px] text-slate-400 font-black uppercase">Updated: ${new Date(d.updatedAt).toLocaleDateString()}</div>
                             <button onclick="event.stopPropagation(); app.deleteDraft('${d.id}')" class="text-slate-300 hover:text-rose-500"><i data-lucide="trash" class="w-5 h-5"></i></button>
                         </div>
-                        <h4 class="font-black text-slate-700 text-lg mb-4 line-clamp-2 opacity-70 group-hover:opacity-100 transition-opacity whitespace-pre-wrap">${d.question || 'Без названия'}</h4>
+                        <h4 class="font-black text-slate-700 text-lg mb-4 line-clamp-2 opacity-70 group-hover:opacity-100 transition-opacity whitespace-pre-wrap">${d.question || 'Untitled'}</h4>
                         <div class="w-full flex justify-end">
-                            <span class="text-xs font-bold text-indigo-500 flex items-center gap-1">Продолжить <i data-lucide="arrow-right" class="w-3 h-3"></i></span>
+                            <span class="text-xs font-bold text-indigo-500 flex items-center gap-1">Continue <i data-lucide="arrow-right" class="w-3 h-3"></i></span>
                         </div>
                     </div>`;
             });
@@ -1264,7 +1266,7 @@
                 const done = g.items.filter(i => i.status === 'completed').length;
                 const prc = Math.round((done / total) * 100);
                 const isScheduled = g.publishAt && g.publishAt.toMillis() > Date.now();
-                const publishDate = g.publishAt ? formatDate(g.publishAt.toDate()) : 'Сразу';
+                const publishDate = g.publishAt ? formatDate(g.publishAt.toDate()) : 'Now';
                 
                 html += `
                     <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm transition-all duration-300 overflow-hidden" id="task-card-${g.groupId}">
@@ -1272,8 +1274,8 @@
                         <div class="p-6 cursor-pointer" onclick="app.toggleTaskAccordion('${g.groupId}')">
                             <div class="flex justify-between items-start mb-2">
                                 <div class="flex items-center gap-2">
-                                    <div class="text-[10px] text-slate-400 font-black uppercase">Дедлайн: ${formatDate(g.deadline.toDate())}</div>
-                                    ${isScheduled ? '<div class="bg-amber-50 text-amber-600 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider">План</div>' : ''}
+                                    <div class="text-[10px] text-slate-400 font-black uppercase">Deadline: ${formatDate(g.deadline.toDate())}</div>
+                                    ${isScheduled ? '<div class="bg-amber-50 text-amber-600 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider">Scheduled</div>' : ''}
                                 </div>
                                 <button onclick="event.stopPropagation(); app.deleteTaskGroup('${g.groupId}')" class="text-slate-200 hover:text-rose-500 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
                             </div>
@@ -1295,17 +1297,17 @@
                              <div class="p-6 border-t border-slate-100">
                                 <div class="grid grid-cols-1 gap-4 mb-6">
                                     <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100/50">
-                                        <div class="text-[10px] font-black uppercase text-indigo-400 mb-1 tracking-widest">Эталонный ответ</div>
+                                        <div class="text-[10px] font-black uppercase text-indigo-400 mb-1 tracking-widest">Correct Answer</div>
                                         <div class="text-base font-black text-indigo-700">${g.correctAnswer}</div>
                                     </div>
                                     <div class="bg-white p-4 rounded-2xl border border-slate-100">
-                                        <div class="text-[10px] font-black uppercase text-slate-400 mb-1 tracking-widest">Публикация</div>
+                                        <div class="text-[10px] font-black uppercase text-slate-400 mb-1 tracking-widest">Published</div>
                                         <div class="text-sm font-bold text-slate-600">${publishDate}</div>
                                     </div>
                                 </div>
 
                                 <div class="space-y-3">
-                                    <div class="text-[10px] font-black uppercase text-slate-400 mb-1 tracking-widest ml-2">Список учеников</div>
+                                    <div class="text-[10px] font-black uppercase text-slate-400 mb-1 tracking-widest ml-2">Student List</div>
                                     ${g.items.map(item => `
                                         <div class="flex flex-col p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
                                             <div class="flex items-center justify-between mb-2">
@@ -1313,20 +1315,20 @@
                                                 <div class="text-xs font-black ${item.status === 'completed' ? 'text-emerald-500' : 'text-slate-300'}">
                                                     ${item.status === 'completed' ? `
                                                         <div class="flex items-center gap-2">
-                                                            <span>Сдано (${item.score} б.)</span>
-                                                            <button onclick="event.stopPropagation(); app.editScore('${item.id}', ${item.score})" class="p-1.5 bg-slate-100 rounded-lg hover:bg-indigo-100 text-slate-400 hover:text-indigo-600 transition-colors" title="Изменить оценку">
+                                                            <span>Submitted (${item.score} pts.)</span>
+                                                            <button onclick="event.stopPropagation(); app.editScore('${item.id}', ${item.score})" class="p-1.5 bg-slate-100 rounded-lg hover:bg-indigo-100 text-slate-400 hover:text-indigo-600 transition-colors" title="Edit Score">
                                                                 <i data-lucide="pencil" class="w-3 h-3"></i>
                                                             </button>
                                                         </div>
-                                                    ` : 'Ожидает'}
+                                                    ` : 'Pending'}
                                                 </div>
                                             </div>
                                             ${item.status === 'completed' ? `
                                                 <div class="text-sm bg-slate-50 p-3 rounded-xl text-slate-600 mb-2 border border-slate-100/50">
-                                                    <span class="font-bold text-slate-400 text-xs uppercase mr-2">Ответ:</span> 
+                                                    <span class="font-bold text-slate-400 text-xs uppercase mr-2">Answer:</span> 
                                                     <span class="font-mono text-sm">${getDiffHTML(item.studentAnswer, g.correctAnswer)}</span>
                                                 </div>
-                                                ${item.accuracy !== undefined ? `<div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider text-right">Точность: ${item.accuracy}%</div>` : ''}
+                                                ${item.accuracy !== undefined ? `<div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider text-right">Accuracy: ${item.accuracy}%</div>` : ''}
                                             ` : ''}
                                         </div>
                                     `).join('')}
@@ -1352,11 +1354,11 @@
 
             document.getElementById('quick-stats').innerHTML = `
                 <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                    <span class="text-[10px] font-black uppercase text-slate-400 block mb-2 tracking-widest">Средний балл</span>
+                    <span class="text-[10px] font-black uppercase text-slate-400 block mb-2 tracking-widest">Average Score</span>
                     <div class="text-3xl font-black text-slate-800">${avgScore}</div>
                 </div>
                 <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                    <span class="text-[10px] font-black uppercase text-slate-400 block mb-2 tracking-widest">Выполнение</span>
+                    <span class="text-[10px] font-black uppercase text-slate-400 block mb-2 tracking-widest">Completion</span>
                     <div class="text-3xl font-black text-indigo-600">${completionRate}%</div>
                 </div>
             `;
@@ -1367,8 +1369,7 @@
             
             const datasets = students.map((s, idx) => {
                 let cumulative = 0;
-                // Добавляем небольшое смещение для каждой линии, чтобы они не слипались
-                // Чем больше учеников, тем больше разброс, но в пределах разумного (например, до 0.8 суммарно)
+                // Add slight offset so lines don't overlap completely
                 const offset = idx * 0.1; 
                 
                 return {
@@ -1378,7 +1379,7 @@
                             .filter(t => t.studentId === s.id && new Date(t.completedAt).toLocaleDateString() === date)
                             .reduce((acc, c) => acc + (c.score || 0), 0);
                         cumulative += dayScore;
-                        return cumulative + offset; // Визуальный сдвиг
+                        return cumulative + offset; // Visual shift
                     }),
                     borderColor: colors[idx % colors.length],
                     backgroundColor: colors[idx % colors.length],
@@ -1410,7 +1411,7 @@
                             padding: 10,
                             callbacks: {
                                 label: function(context) {
-                                    // Показываем реальный балл (убираем оффсет)
+                                    // Show real score (remove offset)
                                     let label = context.dataset.label || '';
                                     if (label) {
                                         label += ': ';
@@ -1434,7 +1435,7 @@
                             beginAtZero: true, 
                             grid: { color: '#f8fafc' },
                             ticks: {
-                                callback: function(value) { if (value % 1 === 0) { return value; } } // Скрываем дробные тики
+                                callback: function(value) { if (value % 1 === 0) { return value; } } // Hide fractional ticks
                             }
                         }, 
                         x: { grid: { display: false } } 
@@ -1447,7 +1448,7 @@
                 return `
                     <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
                         <div class="font-black text-slate-800 truncate mb-1">${s.name}</div>
-                        <div class="text-indigo-600 font-black text-xl">${total} баллов</div>
+                        <div class="text-indigo-600 font-black text-xl">${total} points</div>
                     </div>`;
             }).join('');
         }
@@ -1456,7 +1457,7 @@
             if (!auth.currentUser) return;
             const teacherId = auth.currentUser.uid;
 
-            // Загружаем данные
+            // Load data
             const [studentsSnap, tasksSnap, reactionsSnap] = await Promise.all([ 
                 getDocs(getColPath('students')), 
                 getDocs(getColPath('tasks')),
@@ -1474,12 +1475,12 @@
             const allReactions = reactionsSnap.docs
                 .map(d => d.data());
 
-            // Считаем баллы
+            // Calculate scores
             const scores = {};
             classmates.forEach(s => scores[s.id] = 0);
             allTasks.forEach(t => { if (scores[t.studentId] !== undefined) scores[t.studentId] += (t.score || 0); });
 
-            // Сортируем
+            // Sort
             const leaderboard = classmates.map(s => ({
                 id: s.id,
                 name: s.name, 
@@ -1493,7 +1494,7 @@
                 const rank = index + 1;
                 
                 const receivedReactions = allReactions.filter(r => r.toStudentId === user.id);
-                // Ищем реакцию ОТ УЧИТЕЛЯ (меня)
+                // Find reaction from ME (TEACHER)
                 const myReactionToHim = receivedReactions.find(r => r.fromStudentId === teacherId);
                 
                 let iconColor = 'bg-slate-100 text-slate-500';
@@ -1513,10 +1514,14 @@
                             <!-- Emojis Container -->
                             <div class="flex flex-wrap gap-1 mt-1">
                                 ${receivedReactions.map(r => {
-                                    const style = r.isTeacher 
-                                        ? 'bg-amber-100 border-2 border-amber-300 ring-2 ring-amber-100/50 scale-110 z-10 shadow-sm' 
-                                        : '';
-                                    return `<span class="emoji-pop text-sm cursor-help relative rounded-full ${style}" title="${r.isTeacher ? 'От учителя' : 'Анонимно'}">${r.emoji}</span>`;
+                                    if (r.isTeacher) {
+                                        return `
+                                            <div class="emoji-pop relative group cursor-help inline-flex items-center gap-1 mx-0.5 bg-indigo-600 text-white rounded-full px-2 py-0.5 shadow-md" title="Teacher's reaction">
+                                                <span class="text-[9px] font-black uppercase tracking-wider">TEACHER</span>
+                                                <span class="text-sm border-l border-white/30 pl-1 ml-0.5">${r.emoji}</span>
+                                            </div>`;
+                                    }
+                                    return `<span class="emoji-pop text-sm cursor-help relative rounded-full px-1 hover:bg-slate-100 transition-colors" title="Anonymous">${r.emoji}</span>`;
                                 }).join('')}
                                 
                                 <button onclick="app.openEmojiModal('${user.id}', ${!!myReactionToHim})" class="ml-1 w-6 h-6 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-400 hover:text-indigo-500 flex items-center justify-center transition-all ${myReactionToHim ? 'bg-indigo-100 text-indigo-600 ring-2 ring-indigo-200' : ''}">
@@ -1535,151 +1540,13 @@
             lucide.createIcons();
         }
 
-        async function loadStudentTasks() {
-            if (!currentStudentId) return;
-            
-            try {
-                // Ensure appId is valid before making request
-                if (!appId) throw new Error("App ID is invalid");
-
-                // 1. Загружаем все задачи и фильтруем в памяти (самый надежный способ без индексов)
-                const snap = await getDocs(getColPath('tasks'));
-                const container = document.getElementById('student-tasks-list');
-                const now = Date.now();
-                
-                const tasks = snap.docs.map(d => ({id: d.id, ...d.data()}))
-                    .filter(t => t.studentId === currentStudentId) // Фильтр по ID ученика
-                    .filter(t => {
-                        // 2. БЕЗОПАСНАЯ ПРОВЕРКА ДАТЫ ПУБЛИКАЦИИ
-                        // Проверяем, существует ли timestamp и есть ли у него метод toMillis
-                        if (t.publishAt && typeof t.publishAt.toMillis === 'function') {
-                            return t.publishAt.toMillis() <= now;
-                        }
-                        return true; // Если даты публикации нет, показываем задание
-                    })
-                    .sort((a, b) => b.createdAt - a.createdAt);
-                    
-                const total = tasks.reduce((acc, t) => acc + (t.score || 0), 0);
-                
-                // Обновляем счетчик баллов в сайдбаре
-                if(document.getElementById('student-total-score')) {
-                    document.getElementById('student-total-score').textContent = total + " б.";
-                }
-
-                if (tasks.length === 0) {
-                    container.innerHTML = '<div class="col-span-full py-20 text-center text-slate-300 font-bold italic">Заданий пока нет</div>';
-                    return;
-                }
-
-                let html = '';
-                tasks.forEach(t => {
-                    const done = t.status === 'completed';
-                    
-                    // 3. БЕЗОПАСНОЕ ПОЛУЧЕНИЕ ДАТЫ ДЕДЛАЙНА
-                    // Используем ?. (опциональную цепочку), чтобы код не падал, если дедлайна нет
-                    const deadlineDate = t.deadline?.toDate ? t.deadline.toDate() : null;
-                    const deadlineStr = deadlineDate ? formatDate(deadlineDate) : '';
-                    const isOverdue = deadlineDate && deadlineDate < new Date();
-                    const deadlineClass = isOverdue ? 'text-rose-500 bg-rose-50' : 'text-amber-500 bg-amber-50';
-
-                    if (done) {
-                        html += `
-                            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow" id="st-card-${t.id}">
-                                <!-- Header -->
-                                <div class="p-6 md:p-8 cursor-pointer relative z-10" onclick="app.toggleStudentTaskAccordion('${t.id}')">
-                                     <div class="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
-                                        <i data-lucide="check-circle-2" class="w-16 h-16 text-emerald-500"></i>
-                                    </div>
-                                    <div class="flex justify-between items-center mb-4 relative z-20">
-                                        <div class="flex items-center gap-3">
-                                            <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-xl text-xs font-black shadow-sm">+${t.score} б.</span>
-                                            <span class="text-xs font-bold text-slate-300">${t.completedAt ? formatDate(t.completedAt) : ''}</span>
-                                        </div>
-                                         <i id="st-chevron-${t.id}" data-lucide="chevron-down" class="w-5 h-5 text-slate-300 transition-transform duration-300"></i>
-                                    </div>
-                                    <h4 class="font-bold text-slate-800 text-lg line-clamp-1 group-hover:text-emerald-700 transition-colors">${t.question}</h4>
-                                </div>
-                                
-                                <!-- Body -->
-                                <div id="st-body-${t.id}" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
-                                    <div class="p-6 md:p-8 pt-0">
-                                        <h4 class="font-bold text-slate-800 text-lg mb-6 whitespace-pre-wrap leading-relaxed">${t.question}</h4>
-                                        
-                                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                            <div class="flex justify-between items-center mb-2">
-                                                <div class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Результат</div>
-                                                ${t.accuracy !== undefined ? `<div class="text-[10px] font-black uppercase ${t.accuracy >= 75 ? 'text-emerald-500' : 'text-amber-500'} tracking-widest">${t.accuracy}% точности</div>` : ''}
-                                            </div>
-                                            <div class="font-mono text-base leading-relaxed text-slate-700">
-                                                ${getDiffHTML(t.studentAnswer || '', t.correctAnswer || '')}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>`;
-                    } else {
-                        let typeHint = 'Смешанный ввод';
-                        let inputMode = 'text';
-                        let hintIcon = '💡';
-                        
-                        if (t.answerType === 'digits') {
-                            typeHint = 'Только цифры';
-                            inputMode = 'numeric';
-                            hintIcon = '🔢';
-                        } else if (t.answerType === 'text') {
-                            typeHint = 'Только буквы';
-                            hintIcon = '🔠';
-                        }
-
-                        // В кнопке сдачи добавляем проверку deadline.seconds
-                        const deadlineSec = t.deadline?.seconds || 0;
-
-                        html += `
-                            <div class="bg-white rounded-[2rem] border-2 border-amber-100 shadow-xl shadow-amber-50 relative group" id="st-card-${t.id}">
-                                <!-- Header -->
-                                <div class="p-6 md:p-8 cursor-pointer" onclick="app.toggleStudentTaskAccordion('${t.id}')">
-                                    <div class="flex justify-between items-center mb-4">
-                                        <div class="${deadlineClass} px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                                            <i data-lucide="clock" class="w-3 h-3"></i> ${deadlineStr}
-                                        </div>
-                                         <i id="st-chevron-${t.id}" data-lucide="chevron-down" class="w-5 h-5 text-slate-400 transition-transform duration-300"></i>
-                                    </div>
-                                    <h4 class="text-xl font-black text-slate-800 line-clamp-1 group-hover:text-indigo-600 transition-colors">${t.question}</h4>
-                                </div>
-                                
-                                <!-- Body -->
-                                <div id="st-body-${t.id}" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
-                                    <div class="p-6 md:p-8 pt-0">
-                                        <h4 class="text-xl font-black text-slate-800 mb-8 whitespace-pre-wrap leading-relaxed">${t.question}</h4>
-                                        
-                                        <div class="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest flex items-center gap-1">
-                                            <span>${hintIcon}</span> ${typeHint}
-                                        </div>
-                                        
-                                        <input type="text" inputmode="${inputMode}" id="input-${t.id}" class="w-full p-5 bg-slate-50 rounded-2xl outline-none font-bold text-lg mb-4 focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="Твой ответ...">
-                                        <button onclick="app.submitTask('${t.id}', '${t.correctAnswer}', ${deadlineSec})" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black hover:bg-indigo-600 transition-all shadow-lg shadow-slate-200">Сдать</button>
-                                    </div>
-                                </div>
-                            </div>`;
-                    }
-                });
-                container.innerHTML = html;
-                lucide.createIcons();
-            
-            } catch (error) {
-                console.error("Critical error loading tasks:", error);
-                // More detailed error for debugging if needed, but keeping user friendly message
-                notify("Ошибка загрузки заданий. Проверьте консоль.", "error");
-            }
-        }
-
         async function loadStudentLeaderboard() {
             if (!currentStudentData || !currentStudentId) return;
 
-            // 1. Получаем ID учителя текущего студента
+            // 1. Get teacher ID
             const teacherId = currentStudentData.teacherId;
 
-            // 2. Загружаем данные
+            // 2. Load data
             const [studentsSnap, tasksSnap, reactionsSnap] = await Promise.all([ 
                 getDocs(getColPath('students')), 
                 getDocs(getColPath('tasks')),
@@ -1697,7 +1564,7 @@
             const allReactions = reactionsSnap.docs
                 .map(d => d.data());
 
-            // 3. Считаем баллы
+            // 3. Calc scores
             const scores = {};
             classmates.forEach(s => scores[s.id] = 0);
             
@@ -1707,56 +1574,70 @@
                 }
             });
 
-            // 4. Сортируем (по убыванию баллов)
+            // 4. Sort
             const leaderboard = classmates.map(s => ({
                 id: s.id,
-                name: s.id === currentStudentId ? "Вы" : "Ученик", 
+                name: s.id === currentStudentId ? "You" : "Student", 
                 realName: s.name, 
                 score: scores[s.id]
             })).sort((a, b) => b.score - a.score);
 
-            // 5. Рендерим
+            // 5. Render
             const container = document.getElementById('student-rating-list');
             const myRankIndex = leaderboard.findIndex(x => x.id === currentStudentId);
             const myData = leaderboard[myRankIndex];
 
-            // Находим ближайшего конкурента сверху
+            // Find closest competitor above
             const nextTarget = leaderboard[myRankIndex - 1];
-            const randomPhrase = ["Ты уже близко, поднажми! 🚀", "Вперед к вершине! 🏔️", "Еще немного усилий! 💪"][Math.floor(Math.random()*3)];
+            
+            // Motivation phrase
+            let motivationText = "";
+            
+            if (myRankIndex === 0) {
+                 motivationText = "You're at the top! Keep it up! 👑🔥";
+            } else {
+                 const phrases = ["You're close, push it! 🚀", "Onwards to the summit! 🏔️", "A little more effort! 💪", "You're doing great! 🔥", "The goal is near! 🎯"];
+                 motivationText = phrases[Math.floor(Math.random() * phrases.length)];
+            }
 
             let html = '';
 
-            // Карточка "Ваш результат"
+            // Card "Your Result"
             html += `
-                <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 text-white p-8 rounded-[2.5rem] shadow-xl shadow-indigo-200 mb-8 relative overflow-hidden">
+                <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white p-8 rounded-[2.5rem] shadow-xl shadow-blue-200 mb-8 relative overflow-hidden">
                     <div class="absolute top-0 right-0 p-8 opacity-10 transform translate-x-10 -translate-y-10">
                         <i data-lucide="trophy" class="w-48 h-48"></i>
                     </div>
                     <div class="relative z-10">
-                        <div class="text-indigo-200 font-bold text-sm uppercase tracking-widest mb-2">Ваше место</div>
-                        <div class="flex items-baseline gap-2 mb-6">
+                        <div class="text-blue-200 font-bold text-sm uppercase tracking-widest mb-2">Your Rank</div>
+                        <div class="flex items-baseline gap-2 mb-2">
                             <span class="text-6xl font-black">${myRankIndex + 1}</span>
-                            <span class="text-xl font-medium opacity-60">из ${leaderboard.length}</span>
+                            <span class="text-xl font-medium opacity-60">of ${leaderboard.length}</span>
                         </div>
+                        
+                        <p class="text-blue-200 font-medium text-sm mb-6 border-l-2 border-blue-400 pl-3 italic opacity-80">
+                            ${motivationText}
+                        </p>
+
                          ${nextTarget ? `
                             <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 flex flex-col gap-2">
-                                <span class="text-sm font-medium">До ${myRankIndex}-го места: <strong>${nextTarget.score - myData.score + 1} баллов</strong></span>
+                                <span class="text-sm font-medium">To ${myRankIndex}th place: <strong>${nextTarget.score - myData.score + 1} points</strong></span>
                             </div>` : ''}
                     </div>
                 </div>
             `;
 
-            // Список лидеров
+            // Leaderboard list
             html += `<div class="bg-white rounded-[2rem] border border-slate-100 p-2">`;
             
             leaderboard.forEach((user, index) => {
                 const rank = index + 1;
                 const isMe = user.id === currentStudentId;
                 
-                // Фильтруем реакции ДЛЯ этого юзера
+                // Filter reactions FOR this user
                 const receivedReactions = allReactions.filter(r => r.toStudentId === user.id);
                 
-                // Проверяем, ставил ли Я реакцию этому юзеру
+                // Check if I reacted
                 const myReactionToHim = receivedReactions.find(r => r.fromStudentId === currentStudentId);
                 
                 let iconColor = 'bg-slate-100 text-slate-500';
@@ -1766,33 +1647,36 @@
                 if (rank === 3) { iconColor = 'bg-amber-100 text-amber-700'; iconContent = '3'; }
 
                 html += `
-                    <div class="flex items-center gap-4 p-4 rounded-2xl ${isMe ? 'bg-indigo-50 border border-indigo-100' : ''}">
+                    <div class="flex items-center gap-4 p-4 rounded-2xl ${isMe ? 'bg-blue-50 border border-blue-100' : ''}">
                         <div class="w-10 h-10 rounded-full ${iconColor} flex items-center justify-center font-black text-sm shrink-0">
                             ${iconContent}
                         </div>
                         <div class="flex-grow min-w-0">
-                            <div class="font-bold ${isMe ? 'text-indigo-700' : 'text-slate-700'} text-lg truncate">
-                                ${user.name} ${isMe ? '(Вы)' : ''}
+                            <div class="font-bold ${isMe ? 'text-blue-700' : 'text-slate-700'} text-lg truncate">
+                                ${user.name} ${isMe ? '(You)' : ''}
                             </div>
                             
                             <!-- Emojis Container -->
                             <div class="flex flex-wrap gap-1 mt-1">
                                 ${receivedReactions.map(r => {
-                                    // Стиль для реакций учителя
-                                    const style = r.isTeacher 
-                                        ? 'bg-amber-100 border-2 border-amber-300 ring-2 ring-amber-100/50 scale-110 z-10 shadow-sm' 
-                                        : '';
-                                    return `<span class="emoji-pop text-sm cursor-help relative rounded-full ${style}" title="${r.isTeacher ? 'От учителя' : 'Анонимно'}">${r.emoji}</span>`;
+                                    if (r.isTeacher) {
+                                         return `
+                                            <div class="emoji-pop relative group cursor-help inline-flex items-center gap-1 mx-0.5 bg-indigo-600 text-white rounded-full px-2 py-0.5 shadow-md" title="Teacher's reaction">
+                                                <span class="text-[9px] font-black uppercase tracking-wider">TEACHER</span>
+                                                <span class="text-sm border-l border-white/30 pl-1 ml-0.5">${r.emoji}</span>
+                                            </div>`;
+                                    }
+                                    return `<span class="emoji-pop text-sm cursor-help relative rounded-full px-1 hover:bg-slate-100 transition-colors" title="Anonymous">${r.emoji}</span>`;
                                 }).join('')}
                                 
                                 ${!isMe ? `
-                                    <button onclick="app.openEmojiModal('${user.id}', ${!!myReactionToHim})" class="ml-1 w-6 h-6 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-400 hover:text-indigo-500 flex items-center justify-center transition-all ${myReactionToHim ? 'bg-indigo-100 text-indigo-600 ring-2 ring-indigo-200' : ''}">
+                                    <button onclick="app.openEmojiModal('${user.id}', ${!!myReactionToHim})" class="ml-1 w-6 h-6 rounded-full bg-slate-100 hover:bg-blue-100 text-slate-400 hover:text-blue-500 flex items-center justify-center transition-all ${myReactionToHim ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-200' : ''}">
                                         <i data-lucide="${myReactionToHim ? 'pencil' : 'smile-plus'}" class="w-3 h-3"></i>
                                     </button>
                                 ` : ''}
                             </div>
                         </div>
-                        <div class="font-black text-xl ${isMe ? 'text-indigo-600' : 'text-slate-800'}">${user.score}</div>
+                        <div class="font-black text-xl ${isMe ? 'text-blue-600' : 'text-slate-800'}">${user.score}</div>
                     </div>
                     ${index < leaderboard.length - 1 ? '<div class="h-px bg-slate-50 mx-4"></div>' : ''}
                 `;
@@ -1803,14 +1687,102 @@
             lucide.createIcons();
         }
 
+        async function loadStudentTasks() {
+            if (!currentStudentId) return;
+            
+            // Load all tasks
+            const snap = await getDocs(getColPath('tasks'));
+            const tasks = snap.docs
+                .map(d => ({id: d.id, ...d.data()}))
+                .filter(t => t.studentId === currentStudentId);
+
+            // Sort: Incomplete first, then by date
+            tasks.sort((a, b) => b.createdAt - a.createdAt);
+
+            // Calc total score for sidebar
+            const totalScore = tasks.reduce((acc, t) => acc + (t.score || 0), 0);
+            document.getElementById('student-total-score').textContent = totalScore;
+            
+            const list = document.getElementById('student-tasks-list');
+            
+            if (tasks.length === 0) {
+                list.innerHTML = '<div class="col-span-full text-center text-slate-400 py-20 font-bold">No tasks</div>';
+                return;
+            }
+
+            let html = '';
+            tasks.forEach(t => {
+                const isDone = t.status === 'completed';
+                const isScheduled = t.publishAt && t.publishAt.toMillis() > Date.now();
+                
+                // If scheduled in future, don't show
+                if (isScheduled) return;
+
+                const deadlineDate = t.deadline ? t.deadline.toDate() : null;
+                const isLate = deadlineDate && (Date.now() > deadlineDate.getTime()) && !isDone;
+
+                html += `
+                    <div id="st-card-${t.id}" class="bg-white rounded-[2rem] border border-slate-100 shadow-sm transition-all duration-300 overflow-hidden flex flex-col">
+                        <div class="p-6 cursor-pointer" onclick="app.toggleStudentTaskAccordion('${t.id}')">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="text-[10px] ${isLate ? 'text-rose-500 font-bold' : 'text-slate-400 font-black'} uppercase">
+                                    ${isLate ? 'Overdue' : (deadlineDate ? 'Deadline: ' + formatDate(deadlineDate) : 'No deadline')}
+                                </div>
+                                <div class="text-xs font-black ${isDone ? 'text-emerald-500' : 'text-slate-300'}">
+                                    ${isDone ? `<span class="flex items-center gap-1"><i data-lucide="check-circle-2" class="w-4 h-4"></i> ${t.score} pts.</span>` : 'Not submitted'}
+                                </div>
+                            </div>
+                            
+                            <h4 class="font-black text-slate-800 text-lg mb-4 line-clamp-2">${t.question}</h4>
+                            
+                            <div class="w-full flex justify-end mt-2">
+                                 <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                                     <i id="st-chevron-${t.id}" data-lucide="chevron-down" class="w-5 h-5 transition-transform duration-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Body -->
+                        <div id="st-body-${t.id}" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out bg-slate-50">
+                             <div class="p-6 border-t border-slate-100">
+                                 <div class="mb-6 whitespace-pre-wrap text-slate-600 font-medium">${t.question}</div>
+                                 
+                                 ${isDone ? `
+                                    <div class="bg-white p-4 rounded-2xl border border-slate-200">
+                                        <div class="text-[10px] font-black uppercase text-slate-400 mb-1 tracking-widest">Your Answer</div>
+                                        <div class="font-bold text-slate-800 text-lg mb-2">${t.studentAnswer}</div>
+                                        
+                                        <div class="text-[10px] font-black uppercase text-slate-400 mb-1 tracking-widest mt-4">Score</div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-2xl font-black text-blue-600">${t.score}</span>
+                                            <span class="text-sm font-bold text-slate-400">points</span>
+                                        </div>
+                                    </div>
+                                 ` : `
+                                    <div class="space-y-4">
+                                        <input type="text" id="input-${t.id}" class="w-full px-6 py-4 rounded-2xl bg-white border-2 border-slate-200 focus:border-blue-500 outline-none font-bold text-slate-800 transition-all" placeholder="Enter answer...">
+                                        <button onclick="app.submitTask('${t.id}', '${t.correctAnswer}', ${t.deadline ? t.deadline.seconds : 9999999999})" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-[0.98]">
+                                            Submit Answer
+                                        </button>
+                                    </div>
+                                 `}
+                             </div>
+                        </div>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+            lucide.createIcons();
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 if (user.email) {
-                    // Учитель найден
+                    // Teacher found
                     window.app.showScreen('screen-teacher-dash');
                     window.app.setTeacherTab('students');
                 } else {
-                    // Анонимный вход (возможно студент)
+                    // Anonymous login (likely student)
                     const sid = localStorage.getItem('student_id');
                     if (sid) {
                         try {
@@ -1828,7 +1800,7 @@
                     }
                 }
             } else {
-                // Если вообще никого нет, входим анонимно, чтобы работали запросы к базе
+                // If no one logged in, sign in anonymously to allow DB reads
                 signInAnonymously(auth).catch(() => {});
             }
         });

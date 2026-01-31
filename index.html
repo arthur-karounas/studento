@@ -96,6 +96,14 @@
                 padding-right: 1.5rem !important;
             }
         }
+        
+        /* Анимация для эмодзи */
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .emoji-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
     </style>
 </head>
 <body class="bg-[#F8FAFC] text-slate-900 min-h-screen font-medium">
@@ -138,6 +146,29 @@
                     <button onclick="app.saveScore()" class="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">Сохранить</button>
                 </div>
             </div>
+        </div>
+    </div>
+    
+    <!-- MODAL: EMOJI REACTION -->
+    <div id="modal-emoji" class="fixed inset-0 z-[170] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onclick="app.closeEmojiModal()"></div>
+        <div class="relative bg-white w-full max-w-xs rounded-[2rem] shadow-2xl p-6 animate-slide-up">
+            <div class="text-center mb-6">
+                <h3 class="text-xl font-black text-slate-800">Реакция</h3>
+                <p class="text-xs text-slate-400 font-bold mt-1">Максимум 2 на весь класс</p>
+            </div>
+            <div class="grid grid-cols-4 gap-3 mb-6">
+                <!-- Emojis will be injected here -->
+                <button onclick="app.sendReaction('🔥')" class="text-3xl hover:bg-slate-50 p-3 rounded-2xl transition-colors">🔥</button>
+                <button onclick="app.sendReaction('❤️')" class="text-3xl hover:bg-slate-50 p-3 rounded-2xl transition-colors">❤️</button>
+                <button onclick="app.sendReaction('🚀')" class="text-3xl hover:bg-slate-50 p-3 rounded-2xl transition-colors">🚀</button>
+                <button onclick="app.sendReaction('🌟')" class="text-3xl hover:bg-slate-50 p-3 rounded-2xl transition-colors">🌟</button>
+                <button onclick="app.sendReaction('👑')" class="text-3xl hover:bg-slate-50 p-3 rounded-2xl transition-colors">👑</button>
+                <button onclick="app.sendReaction('😎')" class="text-3xl hover:bg-slate-50 p-3 rounded-2xl transition-colors">😎</button>
+                <button onclick="app.sendReaction('🧠')" class="text-3xl hover:bg-slate-50 p-3 rounded-2xl transition-colors">🧠</button>
+                <button onclick="app.sendReaction('👻')" class="text-3xl hover:bg-slate-50 p-3 rounded-2xl transition-colors">👻</button>
+            </div>
+            <button onclick="app.deleteReaction()" id="btn-delete-reaction" class="w-full py-3 bg-rose-50 text-rose-500 rounded-xl font-bold hover:bg-rose-100 transition-colors hidden">Убрать реакцию</button>
         </div>
     </div>
 
@@ -462,6 +493,7 @@
         let editingDraftId = null;
         let statsChart = null;
         let currentEditingTaskId = null;
+        let currentReactionTargetId = null; // Для хранения ID ученика, которому отправляем реакцию
 
         // === ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ СРАВНЕНИЯ СТРОК (Алгоритм Левенштейна) ===
         function levenshtein(a, b) {
@@ -957,6 +989,77 @@
                     card.classList.add('shadow-xl');
                 }
             },
+            
+            // === ЛОГИКА РЕАКЦИЙ ===
+            openEmojiModal: (targetId, hasReaction) => {
+                currentReactionTargetId = targetId;
+                const btnDelete = document.getElementById('btn-delete-reaction');
+                
+                if (hasReaction) {
+                     btnDelete.classList.remove('hidden');
+                } else {
+                     btnDelete.classList.add('hidden');
+                }
+                document.getElementById('modal-emoji').classList.remove('hidden');
+            },
+            
+            closeEmojiModal: () => {
+                document.getElementById('modal-emoji').classList.add('hidden');
+                currentReactionTargetId = null;
+            },
+            
+            sendReaction: async (emoji) => {
+                if (!currentStudentId || !currentReactionTargetId) return;
+                
+                const reactionId = `${currentStudentId}_${currentReactionTargetId}`;
+                
+                try {
+                    // 1. Проверяем лимит (сколько я уже отправил другим)
+                    // Получаем все мои реакции
+                    const snap = await getDocs(getColPath('reactions'));
+                    const myReactions = snap.docs
+                        .map(d => d.data())
+                        .filter(r => r.fromStudentId === currentStudentId);
+                        
+                    // Если я уже отправлял этому человеку, это обновление, лимит не тратится.
+                    // Если новому - проверяем count
+                    const existingToTarget = myReactions.find(r => r.toStudentId === currentReactionTargetId);
+                    
+                    if (!existingToTarget && myReactions.length >= 2) {
+                        notify("Можно отправить максимум 2 реакции!", "error");
+                        app.closeEmojiModal();
+                        return;
+                    }
+
+                    // 2. Сохраняем/Обновляем реакцию
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'reactions', reactionId), {
+                        fromStudentId: currentStudentId,
+                        toStudentId: currentReactionTargetId,
+                        emoji: emoji,
+                        timestamp: Date.now()
+                    });
+                    
+                    notify("Реакция отправлена!", "success");
+                    app.closeEmojiModal();
+                    loadStudentLeaderboard(); // Обновляем список
+                } catch (e) {
+                    console.error(e);
+                    notify("Ошибка отправки", "error");
+                }
+            },
+            
+            deleteReaction: async () => {
+                if (!currentStudentId || !currentReactionTargetId) return;
+                const reactionId = `${currentStudentId}_${currentReactionTargetId}`;
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'reactions', reactionId));
+                    notify("Реакция удалена", "success");
+                    app.closeEmojiModal();
+                    loadStudentLeaderboard();
+                } catch(e) {
+                    notify("Ошибка удаления", "error");
+                }
+            },
 
             studentLogin: async () => {
                 const phrase = document.getElementById('s-phrase').value.trim().toLowerCase();
@@ -1435,10 +1538,11 @@
             // 1. Получаем ID учителя текущего студента
             const teacherId = currentStudentData.teacherId;
 
-            // 2. Загружаем всех учеников этого учителя (для полного списка) и все задачи этого учителя
-            const [studentsSnap, tasksSnap] = await Promise.all([ 
+            // 2. Загружаем данные
+            const [studentsSnap, tasksSnap, reactionsSnap] = await Promise.all([ 
                 getDocs(getColPath('students')), 
-                getDocs(getColPath('tasks')) 
+                getDocs(getColPath('tasks')),
+                getDocs(getColPath('reactions'))
             ]);
 
             const classmates = studentsSnap.docs
@@ -1448,13 +1552,14 @@
             const allTasks = tasksSnap.docs
                 .map(d => d.data())
                 .filter(t => t.teacherId === teacherId);
+                
+            const allReactions = reactionsSnap.docs
+                .map(d => d.data());
 
             // 3. Считаем баллы
             const scores = {};
-            // Инициализируем нулями
             classmates.forEach(s => scores[s.id] = 0);
             
-            // Суммируем
             allTasks.forEach(t => {
                 if (scores[t.studentId] !== undefined) {
                     scores[t.studentId] += (t.score || 0);
@@ -1464,8 +1569,8 @@
             // 4. Сортируем (по убыванию баллов)
             const leaderboard = classmates.map(s => ({
                 id: s.id,
-                name: s.id === currentStudentId ? "Вы" : "Ученик", // Анонимизация
-                realName: s.name, // Для отладки или если "Вы"
+                name: s.id === currentStudentId ? "Вы" : "Ученик", 
+                realName: s.name, 
                 score: scores[s.id]
             })).sort((a, b) => b.score - a.score);
 
@@ -1476,23 +1581,7 @@
 
             // Находим ближайшего конкурента сверху
             const nextTarget = leaderboard[myRankIndex - 1];
-            
-            // Массив фраз
-            const motivationalPhrases = [
-                "Ты уже близко, поднажми! 🚀",
-                "Вперед к вершине! 🏔️",
-                "Еще немного усилий! 💪",
-                "Ты отлично справляешься! 🌟",
-                "Выше нос, победа близка! 🏆",
-                "Каждый балл приближает к успеху! 🎯",
-                "У тебя огромный потенциал! ✨",
-                "Догоняем лидеров! 🏎️",
-                "Только вперед! 🔥",
-                "Верь в себя! 🌈"
-            ];
-            
-            // Выбираем случайную фразу
-            const randomPhrase = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
+            const randomPhrase = ["Ты уже близко, поднажми! 🚀", "Вперед к вершине! 🏔️", "Еще немного усилий! 💪"][Math.floor(Math.random()*3)];
 
             let html = '';
 
@@ -1508,23 +1597,10 @@
                             <span class="text-6xl font-black">${myRankIndex + 1}</span>
                             <span class="text-xl font-medium opacity-60">из ${leaderboard.length}</span>
                         </div>
-                        
-                        ${nextTarget ? `
+                         ${nextTarget ? `
                             <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 flex flex-col gap-2">
-                                <div class="flex items-center gap-3">
-                                    <i data-lucide="target" class="w-5 h-5 text-indigo-300"></i>
-                                    <span class="text-sm font-medium">До ${myRankIndex}-го места: <strong>${nextTarget.score - myData.score + 1} баллов</strong></span>
-                                </div>
-                                <div class="text-xs text-indigo-200 font-bold border-t border-white/10 pt-2 mt-1 flex items-center gap-2">
-                                     ${randomPhrase}
-                                </div>
-                            </div>
-                        ` : `
-                            <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 inline-flex items-center gap-3">
-                                <i data-lucide="crown" class="w-5 h-5 text-amber-300"></i>
-                                <span class="text-sm font-bold text-amber-100">Вы абсолютный лидер!</span>
-                            </div>
-                        `}
+                                <span class="text-sm font-medium">До ${myRankIndex}-го места: <strong>${nextTarget.score - myData.score + 1} баллов</strong></span>
+                            </div>` : ''}
                     </div>
                 </div>
             `;
@@ -1536,9 +1612,14 @@
                 const rank = index + 1;
                 const isMe = user.id === currentStudentId;
                 
+                // Фильтруем реакции ДЛЯ этого юзера
+                const receivedReactions = allReactions.filter(r => r.toStudentId === user.id);
+                
+                // Проверяем, ставил ли Я реакцию этому юзеру
+                const myReactionToHim = receivedReactions.find(r => r.fromStudentId === currentStudentId);
+                
                 let iconColor = 'bg-slate-100 text-slate-500';
                 let iconContent = rank;
-                
                 if (rank === 1) { iconColor = 'bg-yellow-100 text-yellow-600'; iconContent = '<i data-lucide="trophy" class="w-4 h-4"></i>'; }
                 if (rank === 2) { iconColor = 'bg-slate-200 text-slate-600'; iconContent = '2'; }
                 if (rank === 3) { iconColor = 'bg-amber-100 text-amber-700'; iconContent = '3'; }
@@ -1548,11 +1629,20 @@
                         <div class="w-10 h-10 rounded-full ${iconColor} flex items-center justify-center font-black text-sm shrink-0">
                             ${iconContent}
                         </div>
-                        <div class="flex-grow">
-                            <div class="font-bold ${isMe ? 'text-indigo-700' : 'text-slate-700'} text-lg">
+                        <div class="flex-grow min-w-0">
+                            <div class="font-bold ${isMe ? 'text-indigo-700' : 'text-slate-700'} text-lg truncate">
                                 ${user.name} ${isMe ? '(Вы)' : ''}
                             </div>
-                            ${isMe ? `<div class="text-xs font-bold text-indigo-400 uppercase tracking-wider">${currentStudentData.name}</div>` : ''}
+                            
+                            <!-- Emojis Container -->
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                ${receivedReactions.map(r => `<span class="emoji-pop text-sm cursor-help" title="Анонимно">${r.emoji}</span>`).join('')}
+                                ${!isMe ? `
+                                    <button onclick="app.openEmojiModal('${user.id}', ${!!myReactionToHim})" class="ml-1 w-6 h-6 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-400 hover:text-indigo-500 flex items-center justify-center transition-all ${myReactionToHim ? 'bg-indigo-100 text-indigo-600 ring-2 ring-indigo-200' : ''}">
+                                        <i data-lucide="${myReactionToHim ? 'pencil' : 'smile-plus'}" class="w-3 h-3"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
                         </div>
                         <div class="font-black text-xl ${isMe ? 'text-indigo-600' : 'text-slate-800'}">${user.score}</div>
                     </div>

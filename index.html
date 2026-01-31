@@ -14,12 +14,16 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Весь "задник" и системные области — чисто белые */
-        html { background-color: #ffffff !important; }
+        /* Убираем жесткий белый цвет, чтобы JS мог его менять */
+        html { 
+            background-color: #ffffff; 
+            height: 100%;
+        }
 
         body {
-            background-color: #ffffff !important;
-            padding-top: 0 !important; 
+            background-color: #ffffff;
+            padding-top: 0 !important;
+            min-height: 100%;
         }
 
         /* Мобильный хедер: возвращаем размытие, но гарантируем белый подтон */
@@ -593,6 +597,23 @@
                 document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
                 document.getElementById('screen-main').classList.add('hidden');
                 document.getElementById(id).classList.remove('hidden');
+                
+                // === ДИНАМИЧЕСКИЙ ФОН ДЛЯ OVERSCROLL ===
+                // Если мы на дашборде, красим "подложку" в серый
+                if (id === 'screen-teacher-dash' || id === 'screen-student-dash') {
+                    document.documentElement.style.backgroundColor = '#F8FAFC';
+                    document.body.style.backgroundColor = '#F8FAFC';
+                    // Меняем цвет статус-бара в браузере (для Android Chrome и т.д.)
+                    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+                    if (metaThemeColor) metaThemeColor.setAttribute('content', '#F8FAFC');
+                } else {
+                    // Если на логине/главной, красим в белый
+                    document.documentElement.style.backgroundColor = '#ffffff';
+                    document.body.style.backgroundColor = '#ffffff';
+                    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+                    if (metaThemeColor) metaThemeColor.setAttribute('content', '#ffffff');
+                }
+                
                 lucide.createIcons();
             },
 
@@ -1278,19 +1299,13 @@
             if (!currentStudentId) return;
             
             try {
-                // 1. ИСПОЛЬЗУЕМ ЗАПРОС (QUERY)
-                // Запрашиваем только задания конкретного ученика. 
-                // Это работает быстрее и не нарушает базовые правила безопасности.
-                const q = query(
-                    getColPath('tasks'), 
-                    where('studentId', '==', currentStudentId)
-                );
-                
-                const snap = await getDocs(q);
+                // 1. Загружаем все задачи и фильтруем в памяти (самый надежный способ без индексов)
+                const snap = await getDocs(getColPath('tasks'));
                 const container = document.getElementById('student-tasks-list');
                 const now = Date.now();
                 
                 const tasks = snap.docs.map(d => ({id: d.id, ...d.data()}))
+                    .filter(t => t.studentId === currentStudentId) // Фильтр по ID ученика
                     .filter(t => {
                         // 2. БЕЗОПАСНАЯ ПРОВЕРКА ДАТЫ ПУБЛИКАЦИИ
                         // Проверяем, существует ли timestamp и есть ли у него метод toMillis

@@ -14,16 +14,12 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Убираем жесткий белый цвет, чтобы JS мог его менять */
-        html { 
-            background-color: #ffffff; 
-            height: 100%;
-        }
+        /* Весь "задник" и системные области — чисто белые */
+        html { background-color: #ffffff !important; }
 
         body {
-            background-color: #ffffff;
-            padding-top: 0 !important;
-            min-height: 100%;
+            background-color: #ffffff !important;
+            padding-top: 0 !important; 
         }
 
         /* Мобильный хедер: возвращаем размытие, но гарантируем белый подтон */
@@ -597,23 +593,6 @@
                 document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
                 document.getElementById('screen-main').classList.add('hidden');
                 document.getElementById(id).classList.remove('hidden');
-                
-                // === ДИНАМИЧЕСКИЙ ФОН ДЛЯ OVERSCROLL ===
-                // Если мы на дашборде, красим "подложку" в серый
-                if (id === 'screen-teacher-dash' || id === 'screen-student-dash') {
-                    document.documentElement.style.backgroundColor = '#F8FAFC';
-                    document.body.style.backgroundColor = '#F8FAFC';
-                    // Меняем цвет статус-бара в браузере (для Android Chrome и т.д.)
-                    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-                    if (metaThemeColor) metaThemeColor.setAttribute('content', '#F8FAFC');
-                } else {
-                    // Если на логине/главной, красим в белый
-                    document.documentElement.style.backgroundColor = '#ffffff';
-                    document.body.style.backgroundColor = '#ffffff';
-                    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-                    if (metaThemeColor) metaThemeColor.setAttribute('content', '#ffffff');
-                }
-                
                 lucide.createIcons();
             },
 
@@ -1293,6 +1272,146 @@
                         <div class="text-indigo-600 font-black text-xl">${total} баллов</div>
                     </div>`;
             }).join('');
+        }
+
+        async function loadStudentTasks() {
+            if (!currentStudentId) return;
+            
+            try {
+                // 1. ИСПОЛЬЗУЕМ ЗАПРОС (QUERY)
+                // Запрашиваем только задания конкретного ученика. 
+                // Это работает быстрее и не нарушает базовые правила безопасности.
+                const q = query(
+                    getColPath('tasks'), 
+                    where('studentId', '==', currentStudentId)
+                );
+                
+                const snap = await getDocs(q);
+                const container = document.getElementById('student-tasks-list');
+                const now = Date.now();
+                
+                const tasks = snap.docs.map(d => ({id: d.id, ...d.data()}))
+                    .filter(t => {
+                        // 2. БЕЗОПАСНАЯ ПРОВЕРКА ДАТЫ ПУБЛИКАЦИИ
+                        // Проверяем, существует ли timestamp и есть ли у него метод toMillis
+                        if (t.publishAt && typeof t.publishAt.toMillis === 'function') {
+                            return t.publishAt.toMillis() <= now;
+                        }
+                        return true; // Если даты публикации нет, показываем задание
+                    })
+                    .sort((a, b) => b.createdAt - a.createdAt);
+                    
+                const total = tasks.reduce((acc, t) => acc + (t.score || 0), 0);
+                
+                // Обновляем счетчик баллов в сайдбаре
+                if(document.getElementById('student-total-score')) {
+                    document.getElementById('student-total-score').textContent = total + " б.";
+                }
+
+                if (tasks.length === 0) {
+                    container.innerHTML = '<div class="col-span-full py-20 text-center text-slate-300 font-bold italic">Заданий пока нет</div>';
+                    return;
+                }
+
+                let html = '';
+                tasks.forEach(t => {
+                    const done = t.status === 'completed';
+                    
+                    // 3. БЕЗОПАСНОЕ ПОЛУЧЕНИЕ ДАТЫ ДЕДЛАЙНА
+                    // Используем ?. (опциональную цепочку), чтобы код не падал, если дедлайна нет
+                    const deadlineDate = t.deadline?.toDate ? t.deadline.toDate() : null;
+                    const deadlineStr = deadlineDate ? formatDate(deadlineDate) : '';
+                    const isOverdue = deadlineDate && deadlineDate < new Date();
+                    const deadlineClass = isOverdue ? 'text-rose-500 bg-rose-50' : 'text-amber-500 bg-amber-50';
+
+                    if (done) {
+                        html += `
+                            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow" id="st-card-${t.id}">
+                                <!-- Header -->
+                                <div class="p-6 md:p-8 cursor-pointer relative z-10" onclick="app.toggleStudentTaskAccordion('${t.id}')">
+                                     <div class="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
+                                        <i data-lucide="check-circle-2" class="w-16 h-16 text-emerald-500"></i>
+                                    </div>
+                                    <div class="flex justify-between items-center mb-4 relative z-20">
+                                        <div class="flex items-center gap-3">
+                                            <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-xl text-xs font-black shadow-sm">+${t.score} б.</span>
+                                            <span class="text-xs font-bold text-slate-300">${t.completedAt ? formatDate(t.completedAt) : ''}</span>
+                                        </div>
+                                         <i id="st-chevron-${t.id}" data-lucide="chevron-down" class="w-5 h-5 text-slate-300 transition-transform duration-300"></i>
+                                    </div>
+                                    <h4 class="font-bold text-slate-800 text-lg line-clamp-1 group-hover:text-emerald-700 transition-colors">${t.question}</h4>
+                                </div>
+                                
+                                <!-- Body -->
+                                <div id="st-body-${t.id}" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+                                    <div class="p-6 md:p-8 pt-0">
+                                        <h4 class="font-bold text-slate-800 text-lg mb-6 whitespace-pre-wrap leading-relaxed">${t.question}</h4>
+                                        
+                                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <div class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Результат</div>
+                                                ${t.accuracy !== undefined ? `<div class="text-[10px] font-black uppercase ${t.accuracy >= 75 ? 'text-emerald-500' : 'text-amber-500'} tracking-widest">${t.accuracy}% точности</div>` : ''}
+                                            </div>
+                                            <div class="font-mono text-base leading-relaxed text-slate-700">
+                                                ${getDiffHTML(t.studentAnswer || '', t.correctAnswer || '')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
+                    } else {
+                        let typeHint = 'Смешанный ввод';
+                        let inputMode = 'text';
+                        let hintIcon = '💡';
+                        
+                        if (t.answerType === 'digits') {
+                            typeHint = 'Только цифры';
+                            inputMode = 'numeric';
+                            hintIcon = '🔢';
+                        } else if (t.answerType === 'text') {
+                            typeHint = 'Только буквы';
+                            hintIcon = '🔠';
+                        }
+
+                        // В кнопке сдачи добавляем проверку deadline.seconds
+                        const deadlineSec = t.deadline?.seconds || 0;
+
+                        html += `
+                            <div class="bg-white rounded-[2rem] border-2 border-amber-100 shadow-xl shadow-amber-50 relative group" id="st-card-${t.id}">
+                                <!-- Header -->
+                                <div class="p-6 md:p-8 cursor-pointer" onclick="app.toggleStudentTaskAccordion('${t.id}')">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <div class="${deadlineClass} px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                            <i data-lucide="clock" class="w-3 h-3"></i> ${deadlineStr}
+                                        </div>
+                                         <i id="st-chevron-${t.id}" data-lucide="chevron-down" class="w-5 h-5 text-slate-400 transition-transform duration-300"></i>
+                                    </div>
+                                    <h4 class="text-xl font-black text-slate-800 line-clamp-1 group-hover:text-indigo-600 transition-colors">${t.question}</h4>
+                                </div>
+                                
+                                <!-- Body -->
+                                <div id="st-body-${t.id}" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+                                    <div class="p-6 md:p-8 pt-0">
+                                        <h4 class="text-xl font-black text-slate-800 mb-8 whitespace-pre-wrap leading-relaxed">${t.question}</h4>
+                                        
+                                        <div class="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest flex items-center gap-1">
+                                            <span>${hintIcon}</span> ${typeHint}
+                                        </div>
+                                        
+                                        <input type="text" inputmode="${inputMode}" id="input-${t.id}" class="w-full p-5 bg-slate-50 rounded-2xl outline-none font-bold text-lg mb-4 focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="Твой ответ...">
+                                        <button onclick="app.submitTask('${t.id}', '${t.correctAnswer}', ${deadlineSec})" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black hover:bg-indigo-600 transition-all shadow-lg shadow-slate-200">Сдать</button>
+                                    </div>
+                                </div>
+                            </div>`;
+                    }
+                });
+                container.innerHTML = html;
+                lucide.createIcons();
+            
+            } catch (error) {
+                console.error("Critical error loading tasks:", error);
+                notify("Ошибка загрузки заданий. Проверьте консоль.", "error");
+            }
         }
 
         async function loadStudentLeaderboard() {

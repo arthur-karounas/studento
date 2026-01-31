@@ -111,6 +111,27 @@
         </div>
     </div>
 
+    <!-- MODAL: EDIT SCORE -->
+    <div id="modal-edit-score" class="fixed inset-0 z-[160] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md"></div>
+        <div class="relative bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 animate-slide-up">
+            <div class="flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                    <i data-lucide="pencil" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-2xl font-black text-slate-800 mb-2">Изменить балл</h3>
+                <p class="text-slate-500 mb-8 text-sm font-medium">Введите новую оценку для ученика</p>
+                
+                <input type="number" id="edit-score-input" min="0" max="10" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none font-black text-center text-3xl text-indigo-600 mb-8 placeholder:text-slate-200" placeholder="0">
+
+                <div class="flex gap-3 w-full">
+                    <button onclick="app.closeEditScoreModal()" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">Отмена</button>
+                    <button onclick="app.saveScore()" class="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL: TASK DETAILS -->
     <div id="modal-task-details" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onclick="app.closeTaskDetails()"></div>
@@ -285,6 +306,29 @@
                             </div>
                             <div id="wizard-step-1" class="space-y-6 max-w-xl mx-auto">
                                 <textarea id="task-text" rows="4" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none font-medium text-lg resize-none" placeholder="Что нужно сделать?"></textarea>
+                                
+                                <!-- Выбор типа ответа -->
+                                <div class="bg-slate-100 p-1.5 rounded-2xl flex gap-1">
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="answerType" value="digits" class="peer sr-only">
+                                        <div class="py-3 px-2 rounded-xl text-center text-xs sm:text-sm font-bold text-slate-400 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all flex items-center justify-center gap-2">
+                                            <span>🔢</span> Цифры
+                                        </div>
+                                    </label>
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="answerType" value="text" class="peer sr-only">
+                                        <div class="py-3 px-2 rounded-xl text-center text-xs sm:text-sm font-bold text-slate-400 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all flex items-center justify-center gap-2">
+                                            <span>🔠</span> Буквы
+                                        </div>
+                                    </label>
+                                    <label class="flex-1 cursor-pointer">
+                                        <input type="radio" name="answerType" value="mixed" class="peer sr-only" checked>
+                                        <div class="py-3 px-2 rounded-xl text-center text-xs sm:text-sm font-bold text-slate-400 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all flex items-center justify-center gap-2">
+                                            <span>💡</span> Смешанный
+                                        </div>
+                                    </label>
+                                </div>
+
                                 <input type="text" id="task-answer" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none font-bold" placeholder="Эталонный ответ">
                                 <button onclick="app.nextWizardStep(2)" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-lg">Далее</button>
                             </div>
@@ -392,7 +436,8 @@
         let groupedTasks = []; 
         let drafts = [];
         let editingDraftId = null;
-        let statsChart = null; 
+        let statsChart = null;
+        let currentEditingTaskId = null; // Для модального окна редактирования
 
         // === ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ СРАВНЕНИЯ СТРОК (Алгоритм Левенштейна) ===
         function levenshtein(a, b) {
@@ -588,6 +633,7 @@
                 document.getElementById('task-answer').value = '';
                 document.getElementById('task-deadline').value = '';
                 document.getElementById('task-publish-date').value = '';
+                document.querySelector('input[name="answerType"][value="mixed"]').checked = true; // Default
                 document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = false);
 
                 document.getElementById('wizard-title').textContent = draftId ? "Редактирование черновика" : "Конструктор задания";
@@ -600,6 +646,12 @@
                         if (draft.deadline) document.getElementById('task-deadline').value = draft.deadline; 
                         if (draft.publishAt) document.getElementById('task-publish-date').value = draft.publishAt;
                         
+                        // Set Answer Type
+                        if (draft.answerType) {
+                            const rb = document.querySelector(`input[name="answerType"][value="${draft.answerType}"]`);
+                            if (rb) rb.checked = true;
+                        }
+
                         if (draft.studentIds && Array.isArray(draft.studentIds)) {
                             draft.studentIds.forEach(sid => {
                                 const cb = document.querySelector(`.student-checkbox[value="${sid}"]`);
@@ -620,12 +672,14 @@
                     const answer = document.getElementById('task-answer').value.trim();
                     const deadline = document.getElementById('task-deadline').value;
                     const publishAt = document.getElementById('task-publish-date').value;
+                    const answerType = document.querySelector('input[name="answerType"]:checked').value;
                     const checked = Array.from(document.querySelectorAll('.student-checkbox:checked')).map(cb => cb.value);
 
                     const draftData = {
                         teacherId: auth.currentUser.uid,
                         question,
                         correctAnswer: answer,
+                        answerType,
                         deadline, 
                         publishAt, 
                         studentIds: checked,
@@ -701,6 +755,7 @@
                 const answer = document.getElementById('task-answer').value.trim();
                 const deadlineVal = document.getElementById('task-deadline').value;
                 const publishVal = document.getElementById('task-publish-date').value;
+                const answerType = document.querySelector('input[name="answerType"]:checked').value;
                 const checked = document.querySelectorAll('.student-checkbox:checked');
                 
                 if (!text || !answer || !deadlineVal || checked.length === 0) return notify("Заполните всё", "error");
@@ -713,7 +768,7 @@
                     const promises = Array.from(checked).map(cb => {
                         return addDoc(getColPath('tasks'), {
                             groupId, teacherId: auth.currentUser.uid, studentId: cb.value, studentName: cb.dataset.name,
-                            question: text, correctAnswer: answer, 
+                            question: text, correctAnswer: answer, answerType: answerType,
                             deadline: deadline,
                             publishAt: publishAt,
                             status: 'assigned', score: 0, createdAt: Date.now()
@@ -748,6 +803,43 @@
                     loadTeacherTasks();
                 }
             },
+
+            // === ОБНОВЛЕННАЯ ЛОГИКА РЕДАКТИРОВАНИЯ БАЛЛА (Через кастомное модальное окно) ===
+            editScore: (taskId, currentScore) => {
+                currentEditingTaskId = taskId;
+                document.getElementById('edit-score-input').value = currentScore;
+                document.getElementById('modal-edit-score').classList.remove('hidden');
+            },
+            
+            closeEditScoreModal: () => {
+                 document.getElementById('modal-edit-score').classList.add('hidden');
+                 currentEditingTaskId = null;
+            },
+
+            saveScore: async () => {
+                const newScore = parseInt(document.getElementById('edit-score-input').value, 10);
+                if (isNaN(newScore)) return notify("Введите число", "error");
+
+                try {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', currentEditingTaskId), {
+                        score: newScore
+                    });
+                    notify("Оценка обновлена", "success");
+                    app.closeEditScoreModal();
+                    
+                    await loadTeacherTasks(); // Reload underlying list
+                    
+                    // Обновляем открытое модальное окно с деталями задачи
+                    const group = groupedTasks.find(g => g.items.some(i => i.id === currentEditingTaskId));
+                    if (group) {
+                         app.showTaskDetails(group.groupId);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    notify("Ошибка обновления", "error");
+                }
+            },
+            // =================================================================================
 
             showTaskDetails: (groupId) => {
                 const group = groupedTasks.find(g => g.groupId === groupId);
@@ -788,7 +880,14 @@
                                     <div class="flex items-center justify-between mb-2">
                                         <div class="font-bold text-slate-800">${item.studentName}</div>
                                         <div class="text-xs font-black ${item.status === 'completed' ? 'text-emerald-500' : 'text-slate-300'}">
-                                            ${item.status === 'completed' ? `Сдано (${item.score} б.)` : 'Ожидает'}
+                                            ${item.status === 'completed' ? `
+                                                <div class="flex items-center gap-2">
+                                                    <span>Сдано (${item.score} б.)</span>
+                                                    <button onclick="app.editScore('${item.id}', ${item.score})" class="p-1.5 bg-slate-100 rounded-lg hover:bg-indigo-100 text-slate-400 hover:text-indigo-600 transition-colors" title="Изменить оценку">
+                                                        <i data-lucide="pencil" class="w-3 h-3"></i>
+                                                    </button>
+                                                </div>
+                                            ` : 'Ожидает'}
                                         </div>
                                     </div>
                                     ${item.status === 'completed' ? `
@@ -1002,16 +1101,31 @@
             `;
 
             const dates = [...new Set(completedTasks.map(t => new Date(t.completedAt).toLocaleDateString()))];
+            
+            const colors = ['#4f46e5', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
+            
             const datasets = students.map((s, idx) => {
                 let cumulative = 0;
+                // Добавляем небольшое смещение для каждой линии, чтобы они не слипались
+                // Чем больше учеников, тем больше разброс, но в пределах разумного (например, до 0.8 суммарно)
+                const offset = idx * 0.1; 
+                
                 return {
                     label: s.name,
                     data: dates.map(date => {
-                        cumulative += completedTasks.filter(t => t.studentId === s.id && new Date(t.completedAt).toLocaleDateString() === date).reduce((acc, c) => acc + (c.score || 0), 0);
-                        return cumulative;
+                        const dayScore = completedTasks
+                            .filter(t => t.studentId === s.id && new Date(t.completedAt).toLocaleDateString() === date)
+                            .reduce((acc, c) => acc + (c.score || 0), 0);
+                        cumulative += dayScore;
+                        return cumulative + offset; // Визуальный сдвиг
                     }),
-                    borderColor: ['#4f46e5', '#f59e0b', '#10b981', '#ef4444'][idx % 4],
-                    tension: 0.4, fill: false, borderWidth: 3
+                    borderColor: colors[idx % colors.length],
+                    backgroundColor: colors[idx % colors.length],
+                    tension: 0.4, 
+                    fill: false, 
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    pointHoverRadius: 5
                 };
             });
 
@@ -1021,7 +1135,49 @@
                 data: { labels: dates, datasets },
                 options: { 
                     responsive: true, maintainAspectRatio: false, 
-                    scales: { y: { beginAtZero: true, grid: { color: '#f8fafc' } }, x: { grid: { display: false } } } 
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            titleColor: '#1e293b',
+                            bodyColor: '#475569',
+                            borderColor: '#e2e8f0',
+                            borderWidth: 1,
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    // Показываем реальный балл (убираем оффсет)
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += Math.floor(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 8
+                            }
+                        }
+                    },
+                    scales: { 
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: '#f8fafc' },
+                            ticks: {
+                                callback: function(value) { if (value % 1 === 0) { return value; } } // Скрываем дробные тики
+                            }
+                        }, 
+                        x: { grid: { display: false } } 
+                    } 
                 }
             });
 
@@ -1092,6 +1248,20 @@
                     const deadlineStr = deadlineDate ? formatDate(deadlineDate) : '';
                     const isOverdue = deadlineDate && deadlineDate < new Date();
                     const deadlineClass = isOverdue ? 'text-rose-500 bg-rose-50' : 'text-amber-500 bg-amber-50';
+                    
+                    // Определение подсказки и режима ввода
+                    let typeHint = 'Смешанный ввод';
+                    let inputMode = 'text';
+                    let hintIcon = '💡';
+                    
+                    if (t.answerType === 'digits') {
+                        typeHint = 'Только цифры';
+                        inputMode = 'numeric';
+                        hintIcon = '🔢';
+                    } else if (t.answerType === 'text') {
+                        typeHint = 'Только буквы';
+                        hintIcon = '🔠';
+                    }
 
                     html += `
                         <div class="bg-white rounded-[2rem] p-6 md:p-8 border-2 border-amber-100 shadow-xl shadow-amber-50 relative group">
@@ -1101,7 +1271,12 @@
                                 </div>
                             </div>
                             <h4 class="text-xl font-black text-slate-800 mb-8 whitespace-pre-wrap leading-relaxed">${t.question}</h4>
-                            <input type="text" id="input-${t.id}" class="w-full p-5 bg-slate-50 rounded-2xl outline-none font-bold text-lg mb-4 focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="Твой ответ...">
+                            
+                            <div class="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest flex items-center gap-1">
+                                <span>${hintIcon}</span> ${typeHint}
+                            </div>
+                            
+                            <input type="text" inputmode="${inputMode}" id="input-${t.id}" class="w-full p-5 bg-slate-50 rounded-2xl outline-none font-bold text-lg mb-4 focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="Твой ответ...">
                             <button onclick="app.submitTask('${t.id}', '${t.correctAnswer}', ${t.deadline.seconds})" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black hover:bg-indigo-600 transition-all shadow-lg shadow-slate-200">Сдать</button>
                         </div>`;
                 }

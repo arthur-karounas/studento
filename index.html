@@ -155,7 +155,7 @@
         <div class="relative bg-white w-full max-w-xs rounded-[2rem] shadow-2xl p-6 animate-slide-up">
             <div class="text-center mb-6">
                 <h3 class="text-xl font-black text-slate-800">Реакция</h3>
-                <p class="text-xs text-slate-400 font-bold mt-1">Максимум 2 на весь класс</p>
+                <p id="reaction-hint" class="text-xs text-slate-400 font-bold mt-1">Максимум 2 на весь класс</p>
             </div>
             <div class="grid grid-cols-4 gap-3 mb-6">
                 <!-- Emojis will be injected here -->
@@ -266,6 +266,9 @@
                 <button onclick="app.setTeacherTab('stats')" id="tab-btn-stats" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold text-slate-400 hover:bg-slate-50">
                     <i data-lucide="bar-chart-2" class="w-5 h-5"></i> Аналитика
                 </button>
+                <button onclick="app.setTeacherTab('rating')" id="tab-btn-rating" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold text-slate-400 hover:bg-slate-50">
+                    <i data-lucide="trophy" class="w-5 h-5"></i> Рейтинг
+                </button>
             </nav>
             <button onclick="app.logout()" class="mt-auto flex items-center gap-4 px-6 py-4 rounded-2xl text-rose-500 font-bold hover:bg-rose-50 transition-colors">
                 <i data-lucide="log-out" class="w-5 h-5"></i> Выйти
@@ -282,6 +285,9 @@
             </button>
             <button onclick="app.setTeacherTab('stats')" id="mob-tab-stats" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px]">
                 <i data-lucide="bar-chart-2" class="w-6 h-6"></i> Аналитика
+            </button>
+            <button onclick="app.setTeacherTab('rating')" id="mob-tab-rating" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px]">
+                <i data-lucide="trophy" class="w-6 h-6"></i> Рейтинг
             </button>
             <button onclick="app.logout()" class="flex flex-col items-center gap-1 p-3 text-rose-400 font-black text-[10px]">
                 <i data-lucide="log-out" class="w-6 h-6"></i> Выход
@@ -410,6 +416,15 @@
                         <div id="stats-summary" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"></div>
                     </div>
                 </div>
+            </section>
+            
+            <!-- TAB: RATING (Teacher) -->
+            <section id="tab-rating" class="hidden">
+                 <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-10 screen-header">
+                    <h2 class="text-3xl md:text-4xl font-black text-slate-800">Рейтинг</h2>
+                    <p class="text-slate-400 font-medium">Стена почета класса</p>
+                </div>
+                <div id="teacher-rating-list" class="max-w-2xl mx-auto space-y-4"></div>
             </section>
         </main>
     </div>
@@ -665,8 +680,8 @@
                     return; 
                 }
 
-                const tabs = ['students', 'tasks', 'stats'];
-                const titles = { students: 'Класс', tasks: 'Задания', stats: 'Аналитика' };
+                const tabs = ['students', 'tasks', 'stats', 'rating'];
+                const titles = { students: 'Класс', tasks: 'Задания', stats: 'Аналитика', rating: 'Рейтинг' };
                 
                 const mobileTitle = document.getElementById('mobile-header-title');
                 if (mobileTitle) mobileTitle.textContent = titles[tab];
@@ -685,7 +700,8 @@
                     }
                     
                     document.getElementById(`tab-btn-${t}`).classList.toggle('active-tab', isVisible);
-                    document.getElementById(`mob-tab-${t}`).classList.toggle('mobile-active-tab', isVisible);
+                    const mobBtn = document.getElementById(`mob-tab-${t}`);
+                    if(mobBtn) mobBtn.classList.toggle('mobile-active-tab', isVisible);
                 });
                 
                 activeTeacherTab = tab;
@@ -693,6 +709,7 @@
                 if(tab === 'students') loadMyStudents();
                 if(tab === 'tasks') loadTeacherTasks();
                 if(tab === 'stats') loadStatistics();
+                if(tab === 'rating') loadTeacherLeaderboard();
                 lucide.createIcons();
             },
 
@@ -994,6 +1011,16 @@
             openEmojiModal: (targetId, hasReaction) => {
                 currentReactionTargetId = targetId;
                 const btnDelete = document.getElementById('btn-delete-reaction');
+                const hint = document.getElementById('reaction-hint');
+                
+                // Проверяем, учитель ли это
+                const isTeacher = !currentStudentId && auth.currentUser;
+                
+                if (isTeacher) {
+                    hint.textContent = "Награда от учителя (1 на ученика)";
+                } else {
+                    hint.textContent = "Максимум 2 на весь класс";
+                }
                 
                 if (hasReaction) {
                      btnDelete.classList.remove('hidden');
@@ -1009,39 +1036,56 @@
             },
             
             sendReaction: async (emoji) => {
-                if (!currentStudentId || !currentReactionTargetId) return;
+                // Определяем отправителя (ученик или учитель)
+                let senderId = currentStudentId;
+                let isTeacher = false;
                 
-                const reactionId = `${currentStudentId}_${currentReactionTargetId}`;
+                if (!senderId && auth.currentUser) {
+                    senderId = auth.currentUser.uid;
+                    isTeacher = true;
+                }
+                
+                if (!senderId || !currentReactionTargetId) return;
+                
+                const reactionId = `${senderId}_${currentReactionTargetId}`;
                 
                 try {
-                    // 1. Проверяем лимит (сколько я уже отправил другим)
-                    // Получаем все мои реакции
+                    // 1. Проверяем лимиты
                     const snap = await getDocs(getColPath('reactions'));
                     const myReactions = snap.docs
                         .map(d => d.data())
-                        .filter(r => r.fromStudentId === currentStudentId);
+                        .filter(r => r.fromStudentId === senderId);
                         
-                    // Если я уже отправлял этому человеку, это обновление, лимит не тратится.
-                    // Если новому - проверяем count
+                    // Ищем существующую реакцию этому человеку
                     const existingToTarget = myReactions.find(r => r.toStudentId === currentReactionTargetId);
                     
-                    if (!existingToTarget && myReactions.length >= 2) {
-                        notify("Можно отправить максимум 2 реакции!", "error");
-                        app.closeEmojiModal();
-                        return;
-                    }
+                    if (!isTeacher) {
+                        // Для учеников: лимит 2 всего
+                         if (!existingToTarget && myReactions.length >= 2) {
+                            notify("Можно отправить максимум 2 реакции!", "error");
+                            app.closeEmojiModal();
+                            return;
+                        }
+                    } 
+                    // Для учителей лимит не проверяем глобально, только заменяем старую реакцию этому же ученику (что произойдет автоматически по ID документа)
 
                     // 2. Сохраняем/Обновляем реакцию
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'reactions', reactionId), {
-                        fromStudentId: currentStudentId,
+                        fromStudentId: senderId,
                         toStudentId: currentReactionTargetId,
                         emoji: emoji,
-                        timestamp: Date.now()
+                        timestamp: Date.now(),
+                        isTeacher: isTeacher // Флаг учителя
                     });
                     
                     notify("Реакция отправлена!", "success");
                     app.closeEmojiModal();
-                    loadStudentLeaderboard(); // Обновляем список
+                    
+                    if (isTeacher) {
+                        loadTeacherLeaderboard();
+                    } else {
+                        loadStudentLeaderboard(); 
+                    }
                 } catch (e) {
                     console.error(e);
                     notify("Ошибка отправки", "error");
@@ -1049,13 +1093,22 @@
             },
             
             deleteReaction: async () => {
-                if (!currentStudentId || !currentReactionTargetId) return;
-                const reactionId = `${currentStudentId}_${currentReactionTargetId}`;
+                let senderId = currentStudentId;
+                let isTeacher = false;
+                if (!senderId && auth.currentUser) {
+                    senderId = auth.currentUser.uid;
+                    isTeacher = true;
+                }
+                
+                if (!senderId || !currentReactionTargetId) return;
+                const reactionId = `${senderId}_${currentReactionTargetId}`;
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'reactions', reactionId));
                     notify("Реакция удалена", "success");
                     app.closeEmojiModal();
-                    loadStudentLeaderboard();
+                    
+                    if (isTeacher) loadTeacherLeaderboard();
+                    else loadStudentLeaderboard();
                 } catch(e) {
                     notify("Ошибка удаления", "error");
                 }
@@ -1398,138 +1451,87 @@
             }).join('');
         }
 
-        async function loadStudentTasks() {
-            if (!currentStudentId) return;
-            
-            try {
-                // 1. Загружаем все задачи и фильтруем в памяти (самый надежный способ без индексов)
-                const snap = await getDocs(getColPath('tasks'));
-                const container = document.getElementById('student-tasks-list');
-                const now = Date.now();
+        async function loadTeacherLeaderboard() {
+            if (!auth.currentUser) return;
+            const teacherId = auth.currentUser.uid;
+
+            // Загружаем данные
+            const [studentsSnap, tasksSnap, reactionsSnap] = await Promise.all([ 
+                getDocs(getColPath('students')), 
+                getDocs(getColPath('tasks')),
+                getDocs(getColPath('reactions'))
+            ]);
+
+            const classmates = studentsSnap.docs
+                .map(d => ({id: d.id, ...d.data()}))
+                .filter(s => s.teacherId === teacherId);
+
+            const allTasks = tasksSnap.docs
+                .map(d => d.data())
+                .filter(t => t.teacherId === teacherId);
                 
-                const tasks = snap.docs.map(d => ({id: d.id, ...d.data()}))
-                    .filter(t => t.studentId === currentStudentId) // Фильтр по ID ученика
-                    .filter(t => {
-                        // 2. БЕЗОПАСНАЯ ПРОВЕРКА ДАТЫ ПУБЛИКАЦИИ
-                        // Проверяем, существует ли timestamp и есть ли у него метод toMillis
-                        if (t.publishAt && typeof t.publishAt.toMillis === 'function') {
-                            return t.publishAt.toMillis() <= now;
-                        }
-                        return true; // Если даты публикации нет, показываем задание
-                    })
-                    .sort((a, b) => b.createdAt - a.createdAt);
-                    
-                const total = tasks.reduce((acc, t) => acc + (t.score || 0), 0);
-                
-                // Обновляем счетчик баллов в сайдбаре
-                if(document.getElementById('student-total-score')) {
-                    document.getElementById('student-total-score').textContent = total + " б.";
-                }
+            const allReactions = reactionsSnap.docs
+                .map(d => d.data());
 
-                if (tasks.length === 0) {
-                    container.innerHTML = '<div class="col-span-full py-20 text-center text-slate-300 font-bold italic">Заданий пока нет</div>';
-                    return;
-                }
+            // Считаем баллы
+            const scores = {};
+            classmates.forEach(s => scores[s.id] = 0);
+            allTasks.forEach(t => { if (scores[t.studentId] !== undefined) scores[t.studentId] += (t.score || 0); });
 
-                let html = '';
-                tasks.forEach(t => {
-                    const done = t.status === 'completed';
-                    
-                    // 3. БЕЗОПАСНОЕ ПОЛУЧЕНИЕ ДАТЫ ДЕДЛАЙНА
-                    // Используем ?. (опциональную цепочку), чтобы код не падал, если дедлайна нет
-                    const deadlineDate = t.deadline?.toDate ? t.deadline.toDate() : null;
-                    const deadlineStr = deadlineDate ? formatDate(deadlineDate) : '';
-                    const isOverdue = deadlineDate && deadlineDate < new Date();
-                    const deadlineClass = isOverdue ? 'text-rose-500 bg-rose-50' : 'text-amber-500 bg-amber-50';
+            // Сортируем
+            const leaderboard = classmates.map(s => ({
+                id: s.id,
+                name: s.name, 
+                score: scores[s.id]
+            })).sort((a, b) => b.score - a.score);
 
-                    if (done) {
-                        html += `
-                            <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow" id="st-card-${t.id}">
-                                <!-- Header -->
-                                <div class="p-6 md:p-8 cursor-pointer relative z-10" onclick="app.toggleStudentTaskAccordion('${t.id}')">
-                                     <div class="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
-                                        <i data-lucide="check-circle-2" class="w-16 h-16 text-emerald-500"></i>
-                                    </div>
-                                    <div class="flex justify-between items-center mb-4 relative z-20">
-                                        <div class="flex items-center gap-3">
-                                            <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-xl text-xs font-black shadow-sm">+${t.score} б.</span>
-                                            <span class="text-xs font-bold text-slate-300">${t.completedAt ? formatDate(t.completedAt) : ''}</span>
-                                        </div>
-                                         <i id="st-chevron-${t.id}" data-lucide="chevron-down" class="w-5 h-5 text-slate-300 transition-transform duration-300"></i>
-                                    </div>
-                                    <h4 class="font-bold text-slate-800 text-lg line-clamp-1 group-hover:text-emerald-700 transition-colors">${t.question}</h4>
-                                </div>
-                                
-                                <!-- Body -->
-                                <div id="st-body-${t.id}" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
-                                    <div class="p-6 md:p-8 pt-0">
-                                        <h4 class="font-bold text-slate-800 text-lg mb-6 whitespace-pre-wrap leading-relaxed">${t.question}</h4>
-                                        
-                                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                            <div class="flex justify-between items-center mb-2">
-                                                <div class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Результат</div>
-                                                ${t.accuracy !== undefined ? `<div class="text-[10px] font-black uppercase ${t.accuracy >= 75 ? 'text-emerald-500' : 'text-amber-500'} tracking-widest">${t.accuracy}% точности</div>` : ''}
-                                            </div>
-                                            <div class="font-mono text-base leading-relaxed text-slate-700">
-                                                ${getDiffHTML(t.studentAnswer || '', t.correctAnswer || '')}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>`;
-                    } else {
-                        let typeHint = 'Смешанный ввод';
-                        let inputMode = 'text';
-                        let hintIcon = '💡';
-                        
-                        if (t.answerType === 'digits') {
-                            typeHint = 'Только цифры';
-                            inputMode = 'numeric';
-                            hintIcon = '🔢';
-                        } else if (t.answerType === 'text') {
-                            typeHint = 'Только буквы';
-                            hintIcon = '🔠';
-                        }
-
-                        // В кнопке сдачи добавляем проверку deadline.seconds
-                        const deadlineSec = t.deadline?.seconds || 0;
-
-                        html += `
-                            <div class="bg-white rounded-[2rem] border-2 border-amber-100 shadow-xl shadow-amber-50 relative group" id="st-card-${t.id}">
-                                <!-- Header -->
-                                <div class="p-6 md:p-8 cursor-pointer" onclick="app.toggleStudentTaskAccordion('${t.id}')">
-                                    <div class="flex justify-between items-center mb-4">
-                                        <div class="${deadlineClass} px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                                            <i data-lucide="clock" class="w-3 h-3"></i> ${deadlineStr}
-                                        </div>
-                                         <i id="st-chevron-${t.id}" data-lucide="chevron-down" class="w-5 h-5 text-slate-400 transition-transform duration-300"></i>
-                                    </div>
-                                    <h4 class="text-xl font-black text-slate-800 line-clamp-1 group-hover:text-indigo-600 transition-colors">${t.question}</h4>
-                                </div>
-                                
-                                <!-- Body -->
-                                <div id="st-body-${t.id}" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
-                                    <div class="p-6 md:p-8 pt-0">
-                                        <h4 class="text-xl font-black text-slate-800 mb-8 whitespace-pre-wrap leading-relaxed">${t.question}</h4>
-                                        
-                                        <div class="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest flex items-center gap-1">
-                                            <span>${hintIcon}</span> ${typeHint}
-                                        </div>
-                                        
-                                        <input type="text" inputmode="${inputMode}" id="input-${t.id}" class="w-full p-5 bg-slate-50 rounded-2xl outline-none font-bold text-lg mb-4 focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="Твой ответ...">
-                                        <button onclick="app.submitTask('${t.id}', '${t.correctAnswer}', ${deadlineSec})" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black hover:bg-indigo-600 transition-all shadow-lg shadow-slate-200">Сдать</button>
-                                    </div>
-                                </div>
-                            </div>`;
-                    }
-                });
-                container.innerHTML = html;
-                lucide.createIcons();
+            const container = document.getElementById('teacher-rating-list');
+            let html = `<div class="bg-white rounded-[2rem] border border-slate-100 p-2">`;
             
-            } catch (error) {
-                console.error("Critical error loading tasks:", error);
-                notify("Ошибка загрузки заданий. Проверьте консоль.", "error");
-            }
+            leaderboard.forEach((user, index) => {
+                const rank = index + 1;
+                
+                const receivedReactions = allReactions.filter(r => r.toStudentId === user.id);
+                // Ищем реакцию ОТ УЧИТЕЛЯ (меня)
+                const myReactionToHim = receivedReactions.find(r => r.fromStudentId === teacherId);
+                
+                let iconColor = 'bg-slate-100 text-slate-500';
+                let iconContent = rank;
+                if (rank === 1) { iconColor = 'bg-yellow-100 text-yellow-600'; iconContent = '<i data-lucide="trophy" class="w-4 h-4"></i>'; }
+                if (rank === 2) { iconColor = 'bg-slate-200 text-slate-600'; iconContent = '2'; }
+                if (rank === 3) { iconColor = 'bg-amber-100 text-amber-700'; iconContent = '3'; }
+
+                html += `
+                    <div class="flex items-center gap-4 p-4 rounded-2xl">
+                        <div class="w-10 h-10 rounded-full ${iconColor} flex items-center justify-center font-black text-sm shrink-0">
+                            ${iconContent}
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <div class="font-bold text-slate-700 text-lg truncate">${user.name}</div>
+                            
+                            <!-- Emojis Container -->
+                            <div class="flex flex-wrap gap-1 mt-1">
+                                ${receivedReactions.map(r => {
+                                    const style = r.isTeacher 
+                                        ? 'bg-amber-100 border-2 border-amber-300 ring-2 ring-amber-100/50 scale-110 z-10 shadow-sm' 
+                                        : '';
+                                    return `<span class="emoji-pop text-sm cursor-help relative rounded-full ${style}" title="${r.isTeacher ? 'От учителя' : 'Анонимно'}">${r.emoji}</span>`;
+                                }).join('')}
+                                
+                                <button onclick="app.openEmojiModal('${user.id}', ${!!myReactionToHim})" class="ml-1 w-6 h-6 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-400 hover:text-indigo-500 flex items-center justify-center transition-all ${myReactionToHim ? 'bg-indigo-100 text-indigo-600 ring-2 ring-indigo-200' : ''}">
+                                    <i data-lucide="${myReactionToHim ? 'pencil' : 'smile-plus'}" class="w-3 h-3"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="font-black text-xl text-slate-800">${user.score}</div>
+                    </div>
+                    ${index < leaderboard.length - 1 ? '<div class="h-px bg-slate-50 mx-4"></div>' : ''}
+                `;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+            lucide.createIcons();
         }
 
         async function loadStudentLeaderboard() {
@@ -1636,7 +1638,14 @@
                             
                             <!-- Emojis Container -->
                             <div class="flex flex-wrap gap-1 mt-1">
-                                ${receivedReactions.map(r => `<span class="emoji-pop text-sm cursor-help" title="Анонимно">${r.emoji}</span>`).join('')}
+                                ${receivedReactions.map(r => {
+                                    // Стиль для реакций учителя
+                                    const style = r.isTeacher 
+                                        ? 'bg-amber-100 border-2 border-amber-300 ring-2 ring-amber-100/50 scale-110 z-10 shadow-sm' 
+                                        : '';
+                                    return `<span class="emoji-pop text-sm cursor-help relative rounded-full ${style}" title="${r.isTeacher ? 'От учителя' : 'Анонимно'}">${r.emoji}</span>`;
+                                }).join('')}
+                                
                                 ${!isMe ? `
                                     <button onclick="app.openEmojiModal('${user.id}', ${!!myReactionToHim})" class="ml-1 w-6 h-6 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-400 hover:text-indigo-500 flex items-center justify-center transition-all ${myReactionToHim ? 'bg-indigo-100 text-indigo-600 ring-2 ring-indigo-200' : ''}">
                                         <i data-lucide="${myReactionToHim ? 'pencil' : 'smile-plus'}" class="w-3 h-3"></i>

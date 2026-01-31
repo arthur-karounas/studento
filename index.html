@@ -1411,23 +1411,6 @@
             // Находим ближайшего конкурента сверху
             const nextTarget = leaderboard[myRankIndex - 1];
             
-            // Массив фраз
-            const motivationalPhrases = [
-                "Ты уже близко, поднажми! 🚀",
-                "Вперед к вершине! 🏔️",
-                "Еще немного усилий! 💪",
-                "Ты отлично справляешься! 🌟",
-                "Выше нос, победа близка! 🏆",
-                "Каждый балл приближает к успеху! 🎯",
-                "У тебя огромный потенциал! ✨",
-                "Догоняем лидеров! 🏎️",
-                "Только вперед! 🔥",
-                "Верь в себя! 🌈"
-            ];
-            
-            // Выбираем случайную фразу
-            const randomPhrase = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
-
             let html = '';
 
             // Карточка "Ваш результат"
@@ -1444,14 +1427,9 @@
                         </div>
                         
                         ${nextTarget ? `
-                            <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 flex flex-col gap-2">
-                                <div class="flex items-center gap-3">
-                                    <i data-lucide="target" class="w-5 h-5 text-indigo-300"></i>
-                                    <span class="text-sm font-medium">До ${myRankIndex}-го места: <strong>${nextTarget.score - myData.score + 1} баллов</strong></span>
-                                </div>
-                                <div class="text-xs text-indigo-200 font-bold border-t border-white/10 pt-2 mt-1 flex items-center gap-2">
-                                     ${randomPhrase}
-                                </div>
+                            <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 inline-flex items-center gap-3">
+                                <i data-lucide="target" class="w-5 h-5 text-indigo-300"></i>
+                                <span class="text-sm font-medium">До ${myRankIndex}-го места: <strong>${nextTarget.score - myData.score + 1} баллов</strong></span>
                             </div>
                         ` : `
                             <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 inline-flex items-center gap-3">

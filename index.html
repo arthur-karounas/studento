@@ -453,7 +453,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, getDoc, setDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, getDoc, setDoc, Timestamp, query, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
         const firebaseConfig = JSON.parse('{"apiKey":"AIzaSyA_mptcpENpEsrJYHXBRxb-rlRH_eqI8-E","authDomain":"studento-aa5d2.firebaseapp.com","projectId":"studento-aa5d2","storageBucket":"studento-aa5d2.firebasestorage.app","messagingSenderId":"1078257307837","appId":"1:1078257307837:web:9ea84484c1dfdb129ca7d4"}');
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'school-edu-v4';
@@ -1271,96 +1271,120 @@
 
         async function loadStudentTasks() {
             if (!currentStudentId) return;
-            const snap = await getDocs(getColPath('tasks'));
-            const container = document.getElementById('student-tasks-list');
-            const now = Date.now();
             
-            const tasks = snap.docs.map(d => ({id: d.id, ...d.data()}))
-                .filter(t => t.studentId === currentStudentId)
-                .filter(t => {
-                    if (t.publishAt) {
-                        return t.publishAt.toMillis() <= now;
-                    }
-                    return true;
-                })
-                .sort((a, b) => b.createdAt - a.createdAt);
+            try {
+                // 1. ИСПОЛЬЗУЕМ ЗАПРОС (QUERY)
+                // Запрашиваем только задания конкретного ученика. 
+                // Это работает быстрее и не нарушает базовые правила безопасности.
+                const q = query(
+                    getColPath('tasks'), 
+                    where('studentId', '==', currentStudentId)
+                );
                 
-            const total = tasks.reduce((acc, t) => acc + (t.score || 0), 0);
-            document.getElementById('student-total-score').textContent = total + " б.";
-            document.getElementById('mob-student-score').textContent = total;
+                const snap = await getDocs(q);
+                const container = document.getElementById('student-tasks-list');
+                const now = Date.now();
+                
+                const tasks = snap.docs.map(d => ({id: d.id, ...d.data()}))
+                    .filter(t => {
+                        // 2. БЕЗОПАСНАЯ ПРОВЕРКА ДАТЫ ПУБЛИКАЦИИ
+                        // Проверяем, существует ли timestamp и есть ли у него метод toMillis
+                        if (t.publishAt && typeof t.publishAt.toMillis === 'function') {
+                            return t.publishAt.toMillis() <= now;
+                        }
+                        return true; // Если даты публикации нет, показываем задание
+                    })
+                    .sort((a, b) => b.createdAt - a.createdAt);
+                    
+                const total = tasks.reduce((acc, t) => acc + (t.score || 0), 0);
+                
+                // Обновляем счетчик баллов в сайдбаре
+                if(document.getElementById('student-total-score')) {
+                    document.getElementById('student-total-score').textContent = total + " б.";
+                }
 
-            if (tasks.length === 0) {
-                container.innerHTML = '<div class="col-span-full py-20 text-center text-slate-300 font-bold italic">Заданий пока нет</div>';
-                return;
-            }
+                if (tasks.length === 0) {
+                    container.innerHTML = '<div class="col-span-full py-20 text-center text-slate-300 font-bold italic">Заданий пока нет</div>';
+                    return;
+                }
 
-            let html = '';
-            tasks.forEach(t => {
-                const done = t.status === 'completed';
-                if (done) {
-                    html += `
-                        <div class="bg-white rounded-[2rem] p-6 md:p-8 border border-slate-100 shadow-sm relative overflow-hidden">
-                             <div class="absolute top-0 right-0 p-6 opacity-10">
-                                <i data-lucide="check-circle-2" class="w-24 h-24 text-emerald-500"></i>
-                            </div>
-                            <div class="relative z-10">
-                                <div class="flex justify-between items-start mb-4">
-                                    <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-xl text-xs font-black shadow-sm">+${t.score} б.</span>
-                                    <span class="text-xs font-bold text-slate-300">${formatDate(t.completedAt)}</span>
-                                </div>
-                                <h4 class="font-bold text-slate-800 text-lg mb-6 whitespace-pre-wrap leading-relaxed">${t.question}</h4>
-                                
-                                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <div class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Результат</div>
-                                        ${t.accuracy !== undefined ? `<div class="text-[10px] font-black uppercase ${t.accuracy >= 75 ? 'text-emerald-500' : 'text-amber-500'} tracking-widest">${t.accuracy}% точности</div>` : ''}
-                                    </div>
-                                    <div class="font-mono text-base leading-relaxed text-slate-700">
-                                        ${getDiffHTML(t.studentAnswer, t.correctAnswer)}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>`;
-                } else {
-                    const deadlineDate = t.deadline ? t.deadline.toDate() : null;
+                let html = '';
+                tasks.forEach(t => {
+                    const done = t.status === 'completed';
+                    
+                    // 3. БЕЗОПАСНОЕ ПОЛУЧЕНИЕ ДАТЫ ДЕДЛАЙНА
+                    // Используем ?. (опциональную цепочку), чтобы код не падал, если дедлайна нет
+                    const deadlineDate = t.deadline?.toDate ? t.deadline.toDate() : null;
                     const deadlineStr = deadlineDate ? formatDate(deadlineDate) : '';
                     const isOverdue = deadlineDate && deadlineDate < new Date();
                     const deadlineClass = isOverdue ? 'text-rose-500 bg-rose-50' : 'text-amber-500 bg-amber-50';
-                    
-                    // Определение подсказки и режима ввода
-                    let typeHint = 'Смешанный ввод';
-                    let inputMode = 'text';
-                    let hintIcon = '💡';
-                    
-                    if (t.answerType === 'digits') {
-                        typeHint = 'Только цифры';
-                        inputMode = 'numeric';
-                        hintIcon = '🔢';
-                    } else if (t.answerType === 'text') {
-                        typeHint = 'Только буквы';
-                        hintIcon = '🔠';
-                    }
 
-                    html += `
-                        <div class="bg-white rounded-[2rem] p-6 md:p-8 border-2 border-amber-100 shadow-xl shadow-amber-50 relative group">
-                            <div class="flex justify-between items-center mb-6">
-                                <div class="${deadlineClass} px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                                    <i data-lucide="clock" class="w-3 h-3"></i> ${deadlineStr}
+                    if (done) {
+                        html += `
+                            <div class="bg-white rounded-[2rem] p-6 md:p-8 border border-slate-100 shadow-sm relative overflow-hidden">
+                                <div class="absolute top-0 right-0 p-6 opacity-10">
+                                    <i data-lucide="check-circle-2" class="w-24 h-24 text-emerald-500"></i>
                                 </div>
-                            </div>
-                            <h4 class="text-xl font-black text-slate-800 mb-8 whitespace-pre-wrap leading-relaxed">${t.question}</h4>
-                            
-                            <div class="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest flex items-center gap-1">
-                                <span>${hintIcon}</span> ${typeHint}
-                            </div>
-                            
-                            <input type="text" inputmode="${inputMode}" id="input-${t.id}" class="w-full p-5 bg-slate-50 rounded-2xl outline-none font-bold text-lg mb-4 focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="Твой ответ...">
-                            <button onclick="app.submitTask('${t.id}', '${t.correctAnswer}', ${t.deadline.seconds})" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black hover:bg-indigo-600 transition-all shadow-lg shadow-slate-200">Сдать</button>
-                        </div>`;
-                }
-            });
-            container.innerHTML = html;
-            lucide.createIcons();
+                                <div class="relative z-10">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-xl text-xs font-black shadow-sm">+${t.score} б.</span>
+                                        <span class="text-xs font-bold text-slate-300">${t.completedAt ? formatDate(t.completedAt) : ''}</span>
+                                    </div>
+                                    <h4 class="font-bold text-slate-800 text-lg mb-6 whitespace-pre-wrap leading-relaxed">${t.question}</h4>
+                                    
+                                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <div class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Результат</div>
+                                            ${t.accuracy !== undefined ? `<div class="text-[10px] font-black uppercase ${t.accuracy >= 75 ? 'text-emerald-500' : 'text-amber-500'} tracking-widest">${t.accuracy}% точности</div>` : ''}
+                                        </div>
+                                        <div class="font-mono text-base leading-relaxed text-slate-700">
+                                            ${getDiffHTML(t.studentAnswer || '', t.correctAnswer || '')}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
+                    } else {
+                        let typeHint = 'Смешанный ввод';
+                        let inputMode = 'text';
+                        let hintIcon = '💡';
+                        
+                        if (t.answerType === 'digits') {
+                            typeHint = 'Только цифры';
+                            inputMode = 'numeric';
+                            hintIcon = '🔢';
+                        } else if (t.answerType === 'text') {
+                            typeHint = 'Только буквы';
+                            hintIcon = '🔠';
+                        }
+
+                        // В кнопке сдачи добавляем проверку deadline.seconds
+                        const deadlineSec = t.deadline?.seconds || 0;
+
+                        html += `
+                            <div class="bg-white rounded-[2rem] p-6 md:p-8 border-2 border-amber-100 shadow-xl shadow-amber-50 relative group">
+                                <div class="flex justify-between items-center mb-6">
+                                    <div class="${deadlineClass} px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                        <i data-lucide="clock" class="w-3 h-3"></i> ${deadlineStr}
+                                    </div>
+                                </div>
+                                <h4 class="text-xl font-black text-slate-800 mb-8 whitespace-pre-wrap leading-relaxed">${t.question}</h4>
+                                
+                                <div class="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest flex items-center gap-1">
+                                    <span>${hintIcon}</span> ${typeHint}
+                                </div>
+                                
+                                <input type="text" inputmode="${inputMode}" id="input-${t.id}" class="w-full p-5 bg-slate-50 rounded-2xl outline-none font-bold text-lg mb-4 focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="Твой ответ...">
+                                <button onclick="app.submitTask('${t.id}', '${t.correctAnswer}', ${deadlineSec})" class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black hover:bg-indigo-600 transition-all shadow-lg shadow-slate-200">Сдать</button>
+                            </div>`;
+                    }
+                });
+                container.innerHTML = html;
+                lucide.createIcons();
+            
+            } catch (error) {
+                console.error("Critical error loading tasks:", error);
+                notify("Ошибка загрузки заданий. Проверьте консоль.", "error");
+            }
         }
 
         async function loadStudentLeaderboard() {
@@ -1411,6 +1435,23 @@
             // Находим ближайшего конкурента сверху
             const nextTarget = leaderboard[myRankIndex - 1];
             
+            // Массив фраз
+            const motivationalPhrases = [
+                "Ты уже близко, поднажми! 🚀",
+                "Вперед к вершине! 🏔️",
+                "Еще немного усилий! 💪",
+                "Ты отлично справляешься! 🌟",
+                "Выше нос, победа близка! 🏆",
+                "Каждый балл приближает к успеху! 🎯",
+                "У тебя огромный потенциал! ✨",
+                "Догоняем лидеров! 🏎️",
+                "Только вперед! 🔥",
+                "Верь в себя! 🌈"
+            ];
+            
+            // Выбираем случайную фразу
+            const randomPhrase = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
+
             let html = '';
 
             // Карточка "Ваш результат"
@@ -1427,9 +1468,14 @@
                         </div>
                         
                         ${nextTarget ? `
-                            <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 inline-flex items-center gap-3">
-                                <i data-lucide="target" class="w-5 h-5 text-indigo-300"></i>
-                                <span class="text-sm font-medium">До ${myRankIndex}-го места: <strong>${nextTarget.score - myData.score + 1} баллов</strong></span>
+                            <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 flex flex-col gap-2">
+                                <div class="flex items-center gap-3">
+                                    <i data-lucide="target" class="w-5 h-5 text-indigo-300"></i>
+                                    <span class="text-sm font-medium">До ${myRankIndex}-го места: <strong>${nextTarget.score - myData.score + 1} баллов</strong></span>
+                                </div>
+                                <div class="text-xs text-indigo-200 font-bold border-t border-white/10 pt-2 mt-1 flex items-center gap-2">
+                                     ${randomPhrase}
+                                </div>
                             </div>
                         ` : `
                             <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 inline-flex items-center gap-3">

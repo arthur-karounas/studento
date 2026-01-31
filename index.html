@@ -46,9 +46,14 @@
         /* Активная вкладка для десктопа */
         .active-tab { background: #4f46e5; color: white; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2); }
         
+        .student-active-tab { background: #f59e0b; color: white; box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.2); }
+
         /* Активная вкладка для мобильного (нижнее меню) */
         .mobile-active-tab { color: #4f46e5 !important; }
         .mobile-active-tab i { transform: translateY(-4px); transition: transform 0.2s ease; }
+        
+        .student-mobile-active-tab { color: #d97706 !important; }
+        .student-mobile-active-tab i { transform: translateY(-4px); transition: transform 0.2s ease; }
 
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -390,13 +395,18 @@
         
         <!-- MOBILE TOP HEADER (Fixed) -->
         <header class="md:hidden mobile-header-glass border-b border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-            <h1 id="mobile-header-title" class="font-black text-2xl text-slate-800">Мои уроки</h1>
+            <h1 id="mobile-student-title" class="font-black text-2xl text-slate-800">Мои уроки</h1>
         </header>
 
         <aside class="desktop-sidebar w-80 bg-white border-r border-slate-100 p-8 flex flex-col shrink-0 overflow-y-auto">
             <div class="flex items-center gap-3 mb-12 font-black text-2xl uppercase tracking-widest text-amber-600 italic"><i data-lucide="backpack"></i> With Lera</div>
-            <nav class="flex-grow">
-                <div class="student-active-tab px-6 py-4 rounded-2xl font-black flex items-center gap-4 shadow-sm"><i data-lucide="book-open"></i> Мои уроки</div>
+            <nav class="flex-grow space-y-3">
+                <button onclick="app.setStudentTab('lessons')" id="st-tab-btn-lessons" class="w-full px-6 py-4 rounded-2xl font-black flex items-center gap-4 shadow-sm student-active-tab transition-all hover:bg-amber-50">
+                    <i data-lucide="book-open"></i> Мои уроки
+                </button>
+                <button onclick="app.setStudentTab('rating')" id="st-tab-btn-rating" class="w-full px-6 py-4 rounded-2xl font-black flex items-center gap-4 text-slate-400 transition-all hover:bg-amber-50 hover:text-amber-600">
+                    <i data-lucide="trophy"></i> Рейтинг
+                </button>
             </nav>
             <div class="mt-auto pt-8 border-t border-slate-50">
                 <div class="bg-amber-50 rounded-[2rem] p-6 mb-8 border border-amber-100">
@@ -409,14 +419,34 @@
                 <button onclick="app.logout()" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-400 font-bold">Выйти</button>
             </div>
         </aside>
+        
         <nav class="mobile-nav hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-50 flex flex-row justify-around items-center p-2 pb-6 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
-            <div class="flex flex-col items-center gap-1 p-3 text-amber-500 font-black text-[10px]"><i data-lucide="book-open"></i> Уроки</div>
-            <div class="flex flex-col items-center gap-1 p-3 text-slate-700 font-black text-[10px]"><span id="mob-student-score" class="text-lg">0</span> баллов</div>
-            <button onclick="app.logout()" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px]"><i data-lucide="log-out"></i> Выход</button>
+            <button onclick="app.setStudentTab('lessons')" id="st-mob-tab-lessons" class="flex flex-col items-center gap-1 p-3 text-amber-500 font-black text-[10px] student-mobile-active-tab">
+                <i data-lucide="book-open" class="w-6 h-6"></i> Уроки
+            </button>
+            <button onclick="app.setStudentTab('rating')" id="st-mob-tab-rating" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px]">
+                <i data-lucide="trophy" class="w-6 h-6"></i> Рейтинг
+            </button>
+            <button onclick="app.logout()" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px]">
+                <i data-lucide="log-out" class="w-6 h-6"></i> Выход
+            </button>
         </nav>
+
         <main class="main-content flex-grow p-6 md:p-12 overflow-y-auto bg-[#F8FAFC]">
-            <h2 class="text-3xl md:text-4xl font-black mb-8 text-slate-800 md:block hidden">Уроки</h2>
-            <div id="student-tasks-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+            <!-- STUDENT TAB: LESSONS -->
+            <section id="tab-student-lessons">
+                <h2 class="text-3xl md:text-4xl font-black mb-8 text-slate-800 md:block hidden">Уроки</h2>
+                <div id="student-tasks-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+            </section>
+
+            <!-- STUDENT TAB: RATING -->
+            <section id="tab-student-rating" class="hidden">
+                 <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-10 screen-header">
+                    <h2 class="text-3xl md:text-4xl font-black text-slate-800">Зал славы</h2>
+                    <p class="text-slate-400 font-medium">Анонимный рейтинг класса</p>
+                </div>
+                <div id="student-rating-list" class="max-w-2xl mx-auto space-y-4"></div>
+            </section>
         </main>
     </div>
 
@@ -433,11 +463,12 @@
         const db = getFirestore(appFb);
 
         let currentStudentId = null;
+        let currentStudentData = null; // Для хранения инфо о студенте (и учителе)
         let groupedTasks = []; 
         let drafts = [];
         let editingDraftId = null;
         let statsChart = null;
-        let currentEditingTaskId = null; // Для модального окна редактирования
+        let currentEditingTaskId = null;
 
         // === ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ СРАВНЕНИЯ СТРОК (Алгоритм Левенштейна) ===
         function levenshtein(a, b) {
@@ -566,6 +597,7 @@
         const getColPath = (name) => collection(db, 'artifacts', appId, 'public', 'data', name);
 
         let activeTeacherTab = 'students';
+        let activeStudentTab = 'lessons';
 
         window.app = {
             showScreen: (id) => {
@@ -619,6 +651,51 @@
                 if(tab === 'students') loadMyStudents();
                 if(tab === 'tasks') loadTeacherTasks();
                 if(tab === 'stats') loadStatistics();
+                lucide.createIcons();
+            },
+
+            setStudentTab: (tab) => {
+                if (activeStudentTab === tab && !document.getElementById(`tab-student-${tab}`).classList.contains('hidden')) {
+                     return;
+                }
+                
+                const tabs = ['lessons', 'rating'];
+                const titles = { lessons: 'Мои уроки', rating: 'Рейтинг' };
+
+                const mobileTitle = document.getElementById('mobile-student-title');
+                if (mobileTitle) mobileTitle.textContent = titles[tab];
+
+                tabs.forEach(t => {
+                    const el = document.getElementById(`tab-student-${t}`);
+                    const isVisible = t === tab;
+                    
+                    if (isVisible) {
+                         el.classList.remove('hidden');
+                         el.classList.remove('animate-slide-up');
+                         void el.offsetWidth;
+                         el.classList.add('animate-slide-up');
+                    } else {
+                        el.classList.add('hidden');
+                    }
+
+                    const btn = document.getElementById(`st-tab-btn-${t}`);
+                    if (isVisible) {
+                        btn.classList.add('student-active-tab');
+                        btn.classList.remove('text-slate-400', 'hover:bg-amber-50', 'hover:text-amber-600');
+                    } else {
+                        btn.classList.remove('student-active-tab');
+                        btn.classList.add('text-slate-400', 'hover:bg-amber-50', 'hover:text-amber-600');
+                    }
+
+                    const mobBtn = document.getElementById(`st-mob-tab-${t}`);
+                    mobBtn.classList.toggle('student-mobile-active-tab', isVisible);
+                    if(!isVisible) mobBtn.classList.add('text-slate-400');
+                    else mobBtn.classList.remove('text-slate-400');
+                });
+
+                activeStudentTab = tab;
+                if (tab === 'lessons') loadStudentTasks();
+                if (tab === 'rating') loadStudentLeaderboard();
                 lucide.createIcons();
             },
 
@@ -921,6 +998,7 @@
                     
                     localStorage.setItem('student_id', student.id);
                     currentStudentId = student.id;
+                    currentStudentData = student.data();
 
                     document.getElementById('student-name-display').textContent = student.data().name;
                     document.getElementById('student-phrase-display').textContent = student.data().phrase;
@@ -1285,6 +1363,142 @@
             lucide.createIcons();
         }
 
+        async function loadStudentLeaderboard() {
+            if (!currentStudentData || !currentStudentId) return;
+
+            // 1. Получаем ID учителя текущего студента
+            const teacherId = currentStudentData.teacherId;
+
+            // 2. Загружаем всех учеников этого учителя (для полного списка) и все задачи этого учителя
+            const [studentsSnap, tasksSnap] = await Promise.all([ 
+                getDocs(getColPath('students')), 
+                getDocs(getColPath('tasks')) 
+            ]);
+
+            const classmates = studentsSnap.docs
+                .map(d => ({id: d.id, ...d.data()}))
+                .filter(s => s.teacherId === teacherId);
+
+            const allTasks = tasksSnap.docs
+                .map(d => d.data())
+                .filter(t => t.teacherId === teacherId);
+
+            // 3. Считаем баллы
+            const scores = {};
+            // Инициализируем нулями
+            classmates.forEach(s => scores[s.id] = 0);
+            
+            // Суммируем
+            allTasks.forEach(t => {
+                if (scores[t.studentId] !== undefined) {
+                    scores[t.studentId] += (t.score || 0);
+                }
+            });
+
+            // 4. Сортируем (по убыванию баллов)
+            const leaderboard = classmates.map(s => ({
+                id: s.id,
+                name: s.id === currentStudentId ? "Вы" : "Ученик", // Анонимизация
+                realName: s.name, // Для отладки или если "Вы"
+                score: scores[s.id]
+            })).sort((a, b) => b.score - a.score);
+
+            // 5. Рендерим
+            const container = document.getElementById('student-rating-list');
+            const myRankIndex = leaderboard.findIndex(x => x.id === currentStudentId);
+            const myData = leaderboard[myRankIndex];
+
+            // Находим ближайшего конкурента сверху
+            const nextTarget = leaderboard[myRankIndex - 1];
+            
+            // Массив фраз
+            const motivationalPhrases = [
+                "Ты уже близко, поднажми! 🚀",
+                "Вперед к вершине! 🏔️",
+                "Еще немного усилий! 💪",
+                "Ты отлично справляешься! 🌟",
+                "Выше нос, победа близка! 🏆",
+                "Каждый балл приближает к успеху! 🎯",
+                "У тебя огромный потенциал! ✨",
+                "Догоняем лидеров! 🏎️",
+                "Только вперед! 🔥",
+                "Верь в себя! 🌈"
+            ];
+            
+            // Выбираем случайную фразу
+            const randomPhrase = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
+
+            let html = '';
+
+            // Карточка "Ваш результат"
+            html += `
+                <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 text-white p-8 rounded-[2.5rem] shadow-xl shadow-indigo-200 mb-8 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-8 opacity-10 transform translate-x-10 -translate-y-10">
+                        <i data-lucide="trophy" class="w-48 h-48"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="text-indigo-200 font-bold text-sm uppercase tracking-widest mb-2">Ваше место</div>
+                        <div class="flex items-baseline gap-2 mb-6">
+                            <span class="text-6xl font-black">${myRankIndex + 1}</span>
+                            <span class="text-xl font-medium opacity-60">из ${leaderboard.length}</span>
+                        </div>
+                        
+                        ${nextTarget ? `
+                            <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 flex flex-col gap-2">
+                                <div class="flex items-center gap-3">
+                                    <i data-lucide="target" class="w-5 h-5 text-indigo-300"></i>
+                                    <span class="text-sm font-medium">До ${myRankIndex}-го места: <strong>${nextTarget.score - myData.score + 1} баллов</strong></span>
+                                </div>
+                                <div class="text-xs text-indigo-200 font-bold border-t border-white/10 pt-2 mt-1 flex items-center gap-2">
+                                     ${randomPhrase}
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 inline-flex items-center gap-3">
+                                <i data-lucide="crown" class="w-5 h-5 text-amber-300"></i>
+                                <span class="text-sm font-bold text-amber-100">Вы абсолютный лидер!</span>
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+
+            // Список лидеров
+            html += `<div class="bg-white rounded-[2rem] border border-slate-100 p-2">`;
+            
+            leaderboard.forEach((user, index) => {
+                const rank = index + 1;
+                const isMe = user.id === currentStudentId;
+                
+                let iconColor = 'bg-slate-100 text-slate-500';
+                let iconContent = rank;
+                
+                if (rank === 1) { iconColor = 'bg-yellow-100 text-yellow-600'; iconContent = '<i data-lucide="trophy" class="w-4 h-4"></i>'; }
+                if (rank === 2) { iconColor = 'bg-slate-200 text-slate-600'; iconContent = '2'; }
+                if (rank === 3) { iconColor = 'bg-amber-100 text-amber-700'; iconContent = '3'; }
+
+                html += `
+                    <div class="flex items-center gap-4 p-4 rounded-2xl ${isMe ? 'bg-indigo-50 border border-indigo-100' : ''}">
+                        <div class="w-10 h-10 rounded-full ${iconColor} flex items-center justify-center font-black text-sm shrink-0">
+                            ${iconContent}
+                        </div>
+                        <div class="flex-grow">
+                            <div class="font-bold ${isMe ? 'text-indigo-700' : 'text-slate-700'} text-lg">
+                                ${user.name} ${isMe ? '(Вы)' : ''}
+                            </div>
+                            ${isMe ? `<div class="text-xs font-bold text-indigo-400 uppercase tracking-wider">${currentStudentData.name}</div>` : ''}
+                        </div>
+                        <div class="font-black text-xl ${isMe ? 'text-indigo-600' : 'text-slate-800'}">${user.score}</div>
+                    </div>
+                    ${index < leaderboard.length - 1 ? '<div class="h-px bg-slate-50 mx-4"></div>' : ''}
+                `;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 if (user.email) {
@@ -1299,9 +1513,10 @@
                             const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', sid));
                             if (snap.exists()) {
                                 currentStudentId = sid;
-                                const d = snap.data();
-                                document.getElementById('student-name-display').textContent = d.name;
-                                document.getElementById('student-phrase-display').textContent = d.phrase;
+                                currentStudentData = snap.data();
+
+                                document.getElementById('student-name-display').textContent = currentStudentData.name;
+                                document.getElementById('student-phrase-display').textContent = currentStudentData.phrase;
                                 window.app.showScreen('screen-student-dash');
                                 loadStudentTasks();
                             }

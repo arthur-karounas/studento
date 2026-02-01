@@ -1140,25 +1140,21 @@
                 }
             },
 
-      toggleStudentTaskAccordion(id) {
-            const body = document.getElementById(`st-body-${id}`);
-            const chevron = document.getElementById(`st-chevron-${id}`);
-            const headerContent = document.getElementById(`st-header-content-${id}`);
-            
-            if (body.style.maxHeight && body.style.maxHeight !== '0px') {
-                body.style.maxHeight = '0px';
-                chevron.style.transform = 'rotate(0deg)';
-                headerContent.style.opacity = '1';
-                headerContent.style.maxHeight = '600px'; 
-                headerContent.style.marginTop = '1rem';
-            } else {
-    body.style.maxHeight = (body.scrollHeight + 100) + "px"; // Добавили запас 100px
-    chevron.style.transform = 'rotate(180deg)';
-    headerContent.style.opacity = '0';
-                headerContent.style.maxHeight = '0px';
-                headerContent.style.marginTop = '0px';
-            }
-        },
+      toggleStudentTaskAccordion: (id) => {
+                const body = document.getElementById(`st-body-${id}`);
+                const chevron = document.getElementById(`st-chevron-${id}`);
+                // Мы больше не трогаем headerContent, он всегда виден
+                
+                if (body.style.maxHeight && body.style.maxHeight !== '0px') {
+                    // Закрыть
+                    body.style.maxHeight = '0px';
+                    chevron.style.transform = 'rotate(0deg)';
+                } else {
+                    // Открыть
+                    body.style.maxHeight = (body.scrollHeight + 100) + "px";
+                    chevron.style.transform = 'rotate(180deg)';
+                }
+            },
             
             // === REACTION LOGIC ===
             openEmojiModal: (targetId, hasReaction) => {
@@ -1863,10 +1859,10 @@
                 const isLate = deadlineDate && (Date.now() > deadlineDate.getTime()) && !isDone;
 
                 html += `
-                    <div id="st-card-${t.id}" class="bg-white rounded-[2rem] border border-slate-100 shadow-sm transition-all duration-500 overflow-hidden flex flex-col">
+                    <div id="st-card-${t.id}" class="bg-white rounded-[2rem] border border-slate-100 shadow-sm transition-all duration-500 overflow-hidden flex flex-col group">
                         
                         <div class="cursor-pointer px-6 py-5" onclick="app.toggleStudentTaskAccordion('${t.id}')">
-                            <div class="flex justify-between items-center">
+                            <div class="flex justify-between items-center mb-4">
                                 <div class="flex flex-col gap-1">
                                     <div class="text-[10px] ${isLate ? 'text-rose-500 font-bold' : 'text-slate-400 font-black'} uppercase tracking-widest">
                                         ${isLate ? 'Overdue' : (deadlineDate ? 'Deadline: ' + formatDate(deadlineDate) : 'No deadline')}
@@ -1876,32 +1872,26 @@
                                     </div>
                                 </div>
 
-                                <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
+                                <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
                                      <i id="st-chevron-${t.id}" data-lucide="chevron-down" class="w-5 h-5 transition-transform duration-300"></i>
                                 </div>
                             </div>
 
-                            <div id="st-header-content-${t.id}" class="transition-all duration-300 opacity-100 overflow-hidden mt-4">
-                                ${t.imageUrl ? `
-                                    <div class="w-full h-32 rounded-2xl overflow-hidden mb-4 border border-slate-50">
-                                        <img src="${t.imageUrl}" class="w-full h-full object-cover">
-                                    </div>
-                                ` : ''}
-                                <h4 class="font-black text-slate-800 text-lg line-clamp-2">${t.question}</h4>
-                            </div>
+                            ${t.imageUrl ? `
+                                <div class="w-full h-48 rounded-2xl overflow-hidden mb-4 border border-slate-100 relative">
+                                    <img src="${t.imageUrl}" onclick="event.stopPropagation(); app.openImageModal(this.src)" class="w-full h-full object-cover transition-transform hover:scale-105">
+                                </div>
+                            ` : ''}
+
+                            <h4 class="font-black text-slate-800 text-lg line-clamp-2 leading-snug">${t.question}</h4>
                         </div>
                         
                         <div id="st-body-${t.id}" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out bg-slate-50">
                              <div class="p-6 border-t border-slate-100">
-                                 ${t.imageUrl ? `
-                                    <div class="rounded-2xl overflow-hidden border border-slate-200 mb-6 shadow-sm">
-                                        <img src="${t.imageUrl}" onclick="app.openImageModal(this.src)" class="w-full h-auto max-h-[400px] object-cover cursor-zoom-in">
-                                    </div>
-                                 ` : ''}
 
-                                 <div class="text-slate-800 font-bold text-lg mb-6 whitespace-pre-wrap leading-relaxed">${t.question}</div>
-                                 
-                                 ${isDone ? `
+                                <div class="text-slate-800 font-bold text-lg mb-6 whitespace-pre-wrap leading-relaxed border-b border-slate-200 pb-4">${t.question}</div>
+                                
+                                ${isDone ? `
                                     <div class="bg-white p-5 rounded-2xl border border-slate-200">
                                         <div class="font-bold text-slate-800 text-lg mb-2 font-mono leading-relaxed">
     ${getDiffHTML(t.studentAnswer, t.correctAnswer)}

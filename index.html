@@ -112,6 +112,14 @@
 
     <div id="notification-container" class="fixed top-20 right-4 md:top-6 md:right-6 z-[200] flex flex-col gap-3 w-[calc(100%-2rem)] md:w-auto"></div>
 
+    <!-- MODAL: IMAGE VIEW (FULLSCREEN) -->
+    <div id="modal-image-view" class="fixed inset-0 z-[200] hidden flex items-center justify-center p-4 bg-slate-900/95 backdrop-blur-sm transition-all duration-300" onclick="app.closeImageModal()">
+        <button onclick="app.closeImageModal()" class="absolute top-6 right-6 text-white/70 hover:text-white transition-colors p-2 bg-slate-800/50 rounded-full">
+            <i data-lucide="x" class="w-8 h-8"></i>
+        </button>
+        <img id="expanded-image" class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl transition-transform duration-300 scale-95 cursor-default" onclick="event.stopPropagation()">
+    </div>
+
     <!-- MODAL: CONFIRM -->
     <div id="modal-confirm" class="fixed inset-0 z-[150] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md"></div>
@@ -344,6 +352,22 @@
                             <div id="wizard-step-1" class="space-y-6 max-w-xl mx-auto">
                                 <textarea id="task-text" rows="4" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none font-medium text-lg resize-none" placeholder="What needs to be done?"></textarea>
                                 
+                                <!-- Image Input Section -->
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-400 mb-2 ml-2 uppercase tracking-wide">Image (Optional)</label>
+                                    <div class="flex gap-2 mb-2">
+                                        <input type="text" id="task-image-url" oninput="app.previewImageFromUrl()" class="flex-1 px-6 py-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 outline-none font-medium truncate" placeholder="Paste Image URL or Upload">
+                                        <label class="px-4 py-4 bg-slate-100 rounded-2xl cursor-pointer hover:bg-slate-200 transition-colors flex-shrink-0" title="Upload Image">
+                                            <i data-lucide="image-plus" class="w-6 h-6 text-slate-500"></i>
+                                            <input type="file" id="task-image-file" accept="image/*" class="hidden" onchange="app.handleImageUpload(this)">
+                                        </label>
+                                    </div>
+                                    <div id="image-preview-container" class="hidden relative w-full h-48 bg-slate-50 rounded-2xl overflow-hidden border-2 border-slate-100 mt-2">
+                                        <img id="image-preview" class="w-full h-full object-cover">
+                                        <button onclick="app.clearImage()" class="absolute top-3 right-3 bg-white/80 hover:bg-white text-rose-500 p-2 rounded-xl shadow-sm backdrop-blur-sm transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                    </div>
+                                </div>
+                                
                                 <!-- Answer Type Selection -->
                                 <div class="bg-slate-100 p-1.5 rounded-2xl flex gap-1">
                                     <label class="flex-1 cursor-pointer">
@@ -573,8 +597,8 @@
                         dp[i][j] = dp[i - 1][j - 1];
                     } else {
                         dp[i][j] = Math.min(
-                            dp[i - 1][j] + 1,      // Deletion
-                            dp[i][j - 1] + 1,      // Insertion
+                            dp[i - 1][j] + 1,       // Deletion
+                            dp[i][j - 1] + 1,       // Insertion
                             dp[i - 1][j - 1] + 1  // Substitution
                         );
                     }
@@ -678,6 +702,23 @@
                 });
             },
 
+            openImageModal: (src) => {
+                const modal = document.getElementById('modal-image-view');
+                const img = document.getElementById('expanded-image');
+                img.src = src;
+                modal.classList.remove('hidden');
+                setTimeout(() => img.classList.remove('scale-95'), 10);
+                document.body.classList.add('modal-open');
+            },
+
+            closeImageModal: () => {
+                const modal = document.getElementById('modal-image-view');
+                const img = document.getElementById('expanded-image');
+                modal.classList.add('hidden');
+                img.classList.add('scale-95');
+                document.body.classList.remove('modal-open');
+            },
+
             setTeacherTab: (tab) => {
                 if (activeTeacherTab === tab && !document.getElementById(`tab-${tab}`).classList.contains('hidden')) {
                     return; 
@@ -772,6 +813,9 @@
                 document.getElementById('task-answer').value = '';
                 document.getElementById('task-deadline').value = '';
                 document.getElementById('task-publish-date').value = '';
+                document.getElementById('task-image-url').value = '';
+                app.clearImage(); // Clear preview
+
                 document.querySelector('input[name="answerType"][value="mixed"]').checked = true; // Default
                 document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = false);
 
@@ -785,6 +829,11 @@
                         if (draft.deadline) document.getElementById('task-deadline').value = draft.deadline; 
                         if (draft.publishAt) document.getElementById('task-publish-date').value = draft.publishAt;
                         
+                        if (draft.imageUrl) {
+                            document.getElementById('task-image-url').value = draft.imageUrl;
+                            app.previewImageFromUrl();
+                        }
+
                         // Set Answer Type
                         if (draft.answerType) {
                             const rb = document.querySelector(`input[name="answerType"][value="${draft.answerType}"]`);
@@ -802,6 +851,92 @@
 
                 app.nextWizardStep(1);
             },
+            
+            // --- IMAGE HANDLING START ---
+            handleImageUpload: (input) => {
+                const file = input.files[0];
+                if (!file) return;
+
+                // Removed the strict 2MB check here.
+                // We will compress it. But maybe a sane upper limit of 20MB to avoid crashing browser memory.
+                if (file.size > 20 * 1024 * 1024) return notify("File too huge (>20MB)", "error");
+
+                notify("Processing image...", "info"); // User feedback
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        // Start with a reasonable max dimension
+                        let MAX_DIM = 1000; 
+                        let quality = 0.7;
+
+                        const compress = () => {
+                            let currW = width;
+                            let currH = height;
+
+                            if (currW > currH) {
+                                if (currW > MAX_DIM) { currH *= MAX_DIM / currW; currW = MAX_DIM; }
+                            } else {
+                                if (currH > MAX_DIM) { currW *= MAX_DIM / currH; currH = MAX_DIM; }
+                            }
+
+                            canvas.width = currW;
+                            canvas.height = currH;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, currW, currH);
+
+                            // Attempt conversion
+                            const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                            
+                            // Check size (Base64 length ~ 4/3 of binary size)
+                            // Firestore limit is 1MB. Safe limit ~900KB string length.
+                            if (dataUrl.length > 900000) {
+                                // Too big, reduce constraints and try again
+                                MAX_DIM = Math.floor(MAX_DIM * 0.8); // Reduce dimensions by 20%
+                                quality = Math.max(0.5, quality - 0.1); // Reduce quality slightly, floor at 0.5
+                                if (MAX_DIM < 300) {
+                                    notify("Image too complex to compress safely.", "error");
+                                    return; // Give up
+                                }
+                                compress(); // Recursion
+                            } else {
+                                // Success
+                                document.getElementById('task-image-url').value = dataUrl;
+                                document.getElementById('image-preview').src = dataUrl;
+                                document.getElementById('image-preview-container').classList.remove('hidden');
+                                notify("Image attached!", "success");
+                            }
+                        };
+                        
+                        compress();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+                input.value = '';
+            },
+
+            previewImageFromUrl: () => {
+                const url = document.getElementById('task-image-url').value.trim();
+                if (url) {
+                    document.getElementById('image-preview').src = url;
+                    document.getElementById('image-preview-container').classList.remove('hidden');
+                } else {
+                    app.clearImage();
+                }
+            },
+
+            clearImage: () => {
+                document.getElementById('task-image-url').value = '';
+                document.getElementById('image-preview').src = '';
+                document.getElementById('image-preview-container').classList.add('hidden');
+            },
+            // --- IMAGE HANDLING END ---
 
             closeNewTaskForm: async () => {
                 const question = document.getElementById('task-text').value.trim();
@@ -812,6 +947,7 @@
                     const deadline = document.getElementById('task-deadline').value;
                     const publishAt = document.getElementById('task-publish-date').value;
                     const answerType = document.querySelector('input[name="answerType"]:checked').value;
+                    const imageUrl = document.getElementById('task-image-url').value.trim();
                     const checked = Array.from(document.querySelectorAll('.student-checkbox:checked')).map(cb => cb.value);
 
                     const draftData = {
@@ -820,7 +956,8 @@
                         correctAnswer: answer,
                         answerType,
                         deadline, 
-                        publishAt, 
+                        publishAt,
+                        imageUrl, // Save image
                         studentIds: checked,
                         updatedAt: Date.now()
                     };
@@ -895,6 +1032,7 @@
                 const deadlineVal = document.getElementById('task-deadline').value;
                 const publishVal = document.getElementById('task-publish-date').value;
                 const answerType = document.querySelector('input[name="answerType"]:checked').value;
+                const imageUrl = document.getElementById('task-image-url').value.trim();
                 const checked = document.querySelectorAll('.student-checkbox:checked');
                 
                 if (!text || !answer || !deadlineVal || checked.length === 0) return notify("Fill in everything", "error");
@@ -907,7 +1045,7 @@
                     const promises = Array.from(checked).map(cb => {
                         return addDoc(getColPath('tasks'), {
                             groupId, teacherId: auth.currentUser.uid, studentId: cb.value, studentName: cb.dataset.name,
-                            question: text, correctAnswer: answer, answerType: answerType,
+                            question: text, correctAnswer: answer, answerType: answerType, imageUrl: imageUrl,
                             deadline: deadline,
                             publishAt: publishAt,
                             status: 'assigned', score: 0, createdAt: Date.now()
@@ -1296,6 +1434,11 @@
                         <div id="task-body-${g.groupId}" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out bg-slate-50">
                              <div class="p-6 border-t border-slate-100">
                                 <div class="grid grid-cols-1 gap-4 mb-6">
+                                     ${g.imageUrl ? `
+                                        <div class="rounded-2xl overflow-hidden border border-slate-100 group">
+                                            <img src="${g.imageUrl}" onclick="app.openImageModal(this.src)" class="w-full h-auto max-h-[300px] object-cover cursor-zoom-in transition-transform group-hover:scale-105">
+                                        </div>
+                                     ` : ''}
                                     <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100/50">
                                         <div class="text-[10px] font-black uppercase text-indigo-400 mb-1 tracking-widest">Correct Answer</div>
                                         <div class="text-base font-black text-indigo-700">${g.correctAnswer}</div>
@@ -1660,7 +1803,7 @@
                             <div class="flex flex-wrap gap-1 mt-1">
                                 ${receivedReactions.map(r => {
                                     if (r.isTeacher) {
-                                         return `
+                                        return `
                                             <div class="emoji-pop relative group cursor-help inline-flex items-center gap-1 mx-0.5 bg-indigo-600 text-white rounded-full px-2 py-0.5 shadow-md" title="Teacher's reaction">
                                                 <span class="text-[9px] font-black uppercase tracking-wider">TEACHER</span>
                                                 <span class="text-sm border-l border-white/30 pl-1 ml-0.5">${r.emoji}</span>
@@ -1745,6 +1888,11 @@
                         <!-- Body -->
                         <div id="st-body-${t.id}" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out bg-slate-50">
                              <div class="p-6 border-t border-slate-100">
+                                 ${t.imageUrl ? `
+                                    <div class="rounded-2xl overflow-hidden border border-slate-200 mb-6 group">
+                                        <img src="${t.imageUrl}" onclick="app.openImageModal(this.src)" class="w-full h-auto max-h-[400px] object-cover cursor-zoom-in transition-transform group-hover:scale-105">
+                                    </div>
+                                 ` : ''}
                                  <div class="mb-6 whitespace-pre-wrap text-slate-600 font-medium">${t.question}</div>
                                  
                                  ${isDone ? `
@@ -1758,14 +1906,14 @@
                                             <span class="text-sm font-bold text-slate-400">points</span>
                                         </div>
                                     </div>
-                                 ` : `
+                                   ` : `
                                     <div class="space-y-4">
                                         <input type="text" id="input-${t.id}" class="w-full px-6 py-4 rounded-2xl bg-white border-2 border-slate-200 focus:border-blue-500 outline-none font-bold text-slate-800 transition-all" placeholder="Enter answer...">
                                         <button onclick="app.submitTask('${t.id}', '${t.correctAnswer}', ${t.deadline ? t.deadline.seconds : 9999999999})" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-[0.98]">
                                             Submit Answer
                                         </button>
                                     </div>
-                                 `}
+                                   `}
                              </div>
                         </div>
                     </div>

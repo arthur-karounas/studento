@@ -428,21 +428,21 @@
 
             <!-- TAB: STATS -->
             <section id="tab-stats" class="hidden">
-                <div class="hidden md:flex flex-col md:flex-row justify-between items-center gap-4 md:mb-10 screen-header">
-                    <div>
-                        <h2 class="text-3xl md:text-4xl font-black text-slate-800">Performance</h2>
-                        <p class="text-slate-500 mt-1 font-medium">Class activity and progress analysis</p>
-                    </div>
-                </div>
-                <div id="quick-stats" class="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-10"></div>
-                <div class="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-slate-100">
-                    <div class="h-[300px] md:h-[450px] mb-12"><canvas id="statsChart"></canvas></div>
-                    <div class="border-t border-slate-50 pt-10">
-                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 ml-2">Student Rankings</h3>
-                        <div id="stats-summary" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"></div>
-                    </div>
-                </div>
-            </section>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-8 px-2">
+        <div>
+            <h2 class="text-3xl md:text-4xl font-black text-slate-800">Performance</h2>
+            <p class="text-slate-500 mt-1 font-medium">Class activity and progress analysis</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-slate-100 mb-8">
+        <div class="h-[300px] md:h-[450px]">
+            <canvas id="statsChart"></canvas>
+        </div>
+    </div>
+
+    <div id="quick-stats" class="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-10"></div>
+</section>
             
             <!-- TAB: RATING (Teacher) -->
             <section id="tab-rating" class="hidden">
@@ -732,6 +732,7 @@
 
                 tabs.forEach(t => {
                     const el = document.getElementById(`tab-${t}`);
+                    const btn = document.getElementById(`tab-btn-${t}`);
                     const isVisible = t === tab;
                     
                     if (isVisible) {
@@ -739,11 +740,18 @@
                         el.classList.remove('animate-slide-up');
                         void el.offsetWidth; 
                         el.classList.add('animate-slide-up');
+                        
+                        // ИЗМЕНЕНИЕ: Делаем текст белым, убираем серый и ховер
+                        btn.classList.add('active-tab', 'text-white');
+                        btn.classList.remove('text-slate-400', 'hover:bg-slate-50');
                     } else {
                         el.classList.add('hidden');
+                        
+                        // ИЗМЕНЕНИЕ: Возвращаем серый текст
+                        btn.classList.remove('active-tab', 'text-white');
+                        btn.classList.add('text-slate-400', 'hover:bg-slate-50');
                     }
                     
-                    document.getElementById(`tab-btn-${t}`).classList.toggle('active-tab', isVisible);
                     const mobBtn = document.getElementById(`mob-tab-${t}`);
                     if(mobBtn) mobBtn.classList.toggle('mobile-active-tab', isVisible);
                 });
@@ -770,6 +778,7 @@
 
                 tabs.forEach(t => {
                     const el = document.getElementById(`tab-student-${t}`);
+                    const btn = document.getElementById(`st-tab-btn-${t}`);
                     const isVisible = t === tab;
                     
                     if (isVisible) {
@@ -777,16 +786,15 @@
                           el.classList.remove('animate-slide-up');
                           void el.offsetWidth;
                           el.classList.add('animate-slide-up');
+
+                          // ИЗМЕНЕНИЕ: Явно добавляем белый цвет
+                          btn.classList.add('student-active-tab', 'text-white');
+                          btn.classList.remove('text-slate-400', 'hover:bg-blue-50', 'hover:text-blue-600');
                     } else {
                         el.classList.add('hidden');
-                    }
 
-                    const btn = document.getElementById(`st-tab-btn-${t}`);
-                    if (isVisible) {
-                        btn.classList.add('student-active-tab');
-                        btn.classList.remove('text-slate-400', 'hover:bg-blue-50', 'hover:text-blue-600');
-                    } else {
-                        btn.classList.remove('student-active-tab');
+                        // ИЗМЕНЕНИЕ: Возвращаем стили по умолчанию
+                        btn.classList.remove('student-active-tab', 'text-white');
                         btn.classList.add('text-slate-400', 'hover:bg-blue-50', 'hover:text-blue-600');
                     }
 
@@ -1132,21 +1140,21 @@
                 }
             },
 
-            toggleStudentTaskAccordion: (taskId) => {
-                const body = document.getElementById(`st-body-${taskId}`);
-                const chevron = document.getElementById(`st-chevron-${taskId}`);
-                const card = document.getElementById(`st-card-${taskId}`);
-
-                if (body.style.maxHeight) {
-                    body.style.maxHeight = null;
-                    chevron.style.transform = 'rotate(0deg)';
-                    card.classList.remove('shadow-xl');
-                } else {
-                    body.style.maxHeight = body.scrollHeight + "px";
-                    chevron.style.transform = 'rotate(180deg)';
-                    card.classList.add('shadow-xl');
-                }
-            },
+            toggleStudentTaskAccordion(id) {
+            const body = document.getElementById(`st-body-${id}`);
+            const chevron = document.getElementById(`st-chevron-${id}`);
+            const preview = document.getElementById(`st-preview-${id}`); // Добавили это
+            
+            if (body.style.maxHeight && body.style.maxHeight !== '0px') {
+                body.style.maxHeight = '0px';
+                chevron.style.transform = 'rotate(0deg)';
+                preview.style.opacity = '1'; // Показываем превью снова
+            } else {
+                body.style.maxHeight = '2000px'; 
+                chevron.style.transform = 'rotate(180deg)';
+                preview.style.opacity = '0'; // Скрываем превью в шапке, так как текст появился в теле
+            }
+        },
             
             // === REACTION LOGIC ===
             openEmojiModal: (targetId, hasReaction) => {
@@ -1326,25 +1334,36 @@
 
         async function loadMyStudents() {
             if (!auth.currentUser) return;
-            const [studentsSnap, tasksSnap] = await Promise.all([ getDocs(getColPath('students')), getDocs(getColPath('tasks')) ]);
-            const tasks = tasksSnap.docs.map(d => d.data());
-            const scores = {};
-            tasks.forEach(t => { if(t.teacherId === auth.currentUser.uid) scores[t.studentId] = (scores[t.studentId] || 0) + (t.score || 0); });
+            // Запрашиваем только список студентов
+            const studentsSnap = await getDocs(getColPath('students'));
+            
             const list = document.getElementById('student-list');
             const checklist = document.getElementById('student-checklist');
-            const myStudents = studentsSnap.docs.map(d => ({id: d.id, ...d.data()})).filter(s => s.teacherId === auth.currentUser.uid);
+            const myStudents = studentsSnap.docs
+                .map(d => ({id: d.id, ...d.data()}))
+                .filter(s => s.teacherId === auth.currentUser.uid);
             
             let listHtml = '';
             let checklistHtml = '';
+
             myStudents.forEach(s => {
-                const total = scores[s.id] || 0;
+                // Генерируем карточки для вкладки "Класс"
                 listHtml += `
-                    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 flex flex-col items-center text-center group relative">
-                        <button onclick="app.deleteStudent('${s.id}')" class="absolute top-4 right-4 text-slate-200 hover:text-rose-500 transition-colors p-2"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
-                        <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-xl font-black mb-4">${s.name[0]}</div>
-                        <h4 class="font-black text-slate-800 truncate w-full px-4">${s.name}</h4>
-                        <div class="bg-indigo-600 text-white px-4 py-1.5 rounded-full text-xs font-black shadow-lg shadow-indigo-100 mt-4">${total} pts.</div>
+                    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 flex flex-col items-center text-center group relative shadow-sm">
+                        <button onclick="app.deleteStudent('${s.id}')" class="absolute top-4 right-4 text-slate-200 hover:text-rose-500 transition-colors p-2">
+                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        </button>
+                        <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-xl font-black mb-4">
+                            ${s.name[0]}
+                        </div>
+                        <h4 class="font-black text-slate-800 truncate w-full px-4 mb-2">${s.name}</h4>
+                        
+                        <div class="bg-slate-50 border border-slate-100 text-slate-500 px-4 py-2 rounded-xl text-xs font-mono font-bold mt-2 break-all">
+                            ${s.phrase}
+                        </div>
                     </div>`;
+
+                // Генерируем список для выбора при создании задачи
                 checklistHtml += `
                     <label class="group flex items-center gap-4 p-5 bg-white rounded-2xl border-2 border-slate-50 cursor-pointer hover:border-indigo-400 transition-all">
                         <input type="checkbox" value="${s.id}" data-name="${s.name}" class="student-checkbox peer sr-only">
@@ -1354,6 +1373,7 @@
                         <span class="font-bold text-slate-700">${s.name}</span>
                     </label>`;
             });
+
             list.innerHTML = listHtml;
             checklist.innerHTML = checklistHtml;
             lucide.createIcons();
@@ -1496,23 +1516,21 @@
             const completionRate = tasks.length ? Math.round((completedTasks.length / tasks.length) * 100) : 0;
 
             document.getElementById('quick-stats').innerHTML = `
-                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm text-center">
                     <span class="text-[10px] font-black uppercase text-slate-400 block mb-2 tracking-widest">Average Score</span>
                     <div class="text-3xl font-black text-slate-800">${avgScore}</div>
                 </div>
-                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm text-center">
                     <span class="text-[10px] font-black uppercase text-slate-400 block mb-2 tracking-widest">Completion</span>
                     <div class="text-3xl font-black text-indigo-600">${completionRate}%</div>
                 </div>
             `;
 
             const dates = [...new Set(completedTasks.map(t => new Date(t.completedAt).toLocaleDateString()))];
-            
             const colors = ['#4f46e5', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
             
             const datasets = students.map((s, idx) => {
                 let cumulative = 0;
-                // Add slight offset so lines don't overlap completely
                 const offset = idx * 0.1; 
                 
                 return {
@@ -1522,7 +1540,7 @@
                             .filter(t => t.studentId === s.id && new Date(t.completedAt).toLocaleDateString() === date)
                             .reduce((acc, c) => acc + (c.score || 0), 0);
                         cumulative += dayScore;
-                        return cumulative + offset; // Visual shift
+                        return cumulative + offset;
                     }),
                     borderColor: colors[idx % colors.length],
                     backgroundColor: colors[idx % colors.length],
@@ -1540,10 +1558,7 @@
                 data: { labels: dates, datasets },
                 options: { 
                     responsive: true, maintainAspectRatio: false, 
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
+                    interaction: { mode: 'index', intersect: false },
                     plugins: {
                         tooltip: {
                             backgroundColor: 'rgba(255, 255, 255, 0.9)',
@@ -1554,46 +1569,28 @@
                             padding: 10,
                             callbacks: {
                                 label: function(context) {
-                                    // Show real score (remove offset)
                                     let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed.y !== null) {
-                                        label += Math.floor(context.parsed.y);
-                                    }
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) label += Math.floor(context.parsed.y);
                                     return label;
                                 }
                             }
                         },
-                        legend: {
-                            labels: {
-                                usePointStyle: true,
-                                boxWidth: 8
-                            }
-                        }
+                        legend: { labels: { usePointStyle: true, boxWidth: 8 } }
                     },
                     scales: { 
                         y: { 
                             beginAtZero: true, 
                             grid: { color: '#f8fafc' },
-                            ticks: {
-                                callback: function(value) { if (value % 1 === 0) { return value; } } // Hide fractional ticks
-                            }
+                            ticks: { callback: function(value) { if (value % 1 === 0) return value; } }
                         }, 
                         x: { grid: { display: false } } 
                     } 
                 }
             });
 
-            document.getElementById('stats-summary').innerHTML = students.map(s => {
-                const total = tasks.filter(t => t.studentId === s.id).reduce((acc, c) => acc + (c.score || 0), 0);
-                return `
-                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                        <div class="font-black text-slate-800 truncate mb-1">${s.name}</div>
-                        <div class="text-indigo-600 font-black text-xl">${total} points</div>
-                    </div>`;
-            }).join('');
+            // Очищаем контейнер со списком учеников
+            document.getElementById('stats-summary').innerHTML = '';
         }
 
         async function loadTeacherLeaderboard() {
@@ -1833,16 +1830,13 @@
         async function loadStudentTasks() {
             if (!currentStudentId) return;
             
-            // Load all tasks
             const snap = await getDocs(getColPath('tasks'));
             const tasks = snap.docs
                 .map(d => ({id: d.id, ...d.data()}))
                 .filter(t => t.studentId === currentStudentId);
 
-            // Sort: Incomplete first, then by date
             tasks.sort((a, b) => b.createdAt - a.createdAt);
 
-            // Calc total score for sidebar
             const totalScore = tasks.reduce((acc, t) => acc + (t.score || 0), 0);
             document.getElementById('student-total-score').textContent = totalScore;
             
@@ -1857,8 +1851,6 @@
             tasks.forEach(t => {
                 const isDone = t.status === 'completed';
                 const isScheduled = t.publishAt && t.publishAt.toMillis() > Date.now();
-                
-                // If scheduled in future, don't show
                 if (isScheduled) return;
 
                 const deadlineDate = t.deadline ? t.deadline.toDate() : null;
@@ -1876,27 +1868,28 @@
                                 </div>
                             </div>
                             
-                            <h4 class="font-black text-slate-800 text-lg mb-4 line-clamp-2">${t.question}</h4>
+                            <h4 id="st-preview-${t.id}" class="font-black text-slate-800 text-lg line-clamp-2 transition-opacity duration-300">${t.question}</h4>
                             
                             <div class="w-full flex justify-end mt-2">
-                                 <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                                 <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 transition-colors">
                                      <i id="st-chevron-${t.id}" data-lucide="chevron-down" class="w-5 h-5 transition-transform duration-300"></i>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Body -->
                         <div id="st-body-${t.id}" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out bg-slate-50">
                              <div class="p-6 border-t border-slate-100">
+                                 
+                                 <div class="text-slate-800 font-bold text-lg mb-6 whitespace-pre-wrap leading-relaxed">${t.question}</div>
+
                                  ${t.imageUrl ? `
                                     <div class="rounded-2xl overflow-hidden border border-slate-200 mb-6 group">
                                         <img src="${t.imageUrl}" onclick="app.openImageModal(this.src)" class="w-full h-auto max-h-[400px] object-cover cursor-zoom-in transition-transform group-hover:scale-105">
                                     </div>
                                  ` : ''}
-                                 <div class="mb-6 whitespace-pre-wrap text-slate-600 font-medium">${t.question}</div>
                                  
                                  ${isDone ? `
-                                    <div class="bg-white p-4 rounded-2xl border border-slate-200">
+                                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-inner">
                                         <div class="text-[10px] font-black uppercase text-slate-400 mb-1 tracking-widest">Your Answer</div>
                                         <div class="font-bold text-slate-800 text-lg mb-2">${t.studentAnswer}</div>
                                         
@@ -1913,7 +1906,7 @@
                                             Submit Answer
                                         </button>
                                     </div>
-                                   `}
+                                    `}
                              </div>
                         </div>
                     </div>

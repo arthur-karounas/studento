@@ -1152,9 +1152,9 @@
                 headerContent.style.maxHeight = '600px'; 
                 headerContent.style.marginTop = '1rem';
             } else {
-                body.style.maxHeight = '2000px'; 
-                chevron.style.transform = 'rotate(180deg)';
-                headerContent.style.opacity = '0';
+    body.style.maxHeight = body.scrollHeight + "px"; // <--- Исправление: высота подстраивается под контент
+    chevron.style.transform = 'rotate(180deg)';
+    headerContent.style.opacity = '0';
                 headerContent.style.maxHeight = '0px';
                 headerContent.style.marginTop = '0px';
             }

@@ -1140,19 +1140,23 @@
                 }
             },
 
-            toggleStudentTaskAccordion(id) {
+      toggleStudentTaskAccordion(id) {
             const body = document.getElementById(`st-body-${id}`);
             const chevron = document.getElementById(`st-chevron-${id}`);
-            const preview = document.getElementById(`st-preview-${id}`); // Добавили это
+            const headerContent = document.getElementById(`st-header-content-${id}`);
             
             if (body.style.maxHeight && body.style.maxHeight !== '0px') {
                 body.style.maxHeight = '0px';
                 chevron.style.transform = 'rotate(0deg)';
-                preview.style.opacity = '1'; // Показываем превью снова
+                headerContent.style.opacity = '1';
+                headerContent.style.maxHeight = '600px'; 
+                headerContent.style.marginTop = '1rem';
             } else {
                 body.style.maxHeight = '2000px'; 
                 chevron.style.transform = 'rotate(180deg)';
-                preview.style.opacity = '0'; // Скрываем превью в шапке, так как текст появился в теле
+                headerContent.style.opacity = '0';
+                headerContent.style.maxHeight = '0px';
+                headerContent.style.marginTop = '0px';
             }
         },
             
@@ -1857,53 +1861,59 @@
                 const isLate = deadlineDate && (Date.now() > deadlineDate.getTime()) && !isDone;
 
                 html += `
-                    <div id="st-card-${t.id}" class="bg-white rounded-[2rem] border border-slate-100 shadow-sm transition-all duration-300 overflow-hidden flex flex-col">
-                        <div class="p-6 cursor-pointer" onclick="app.toggleStudentTaskAccordion('${t.id}')">
-                            <div class="flex justify-between items-start mb-2">
-                                <div class="text-[10px] ${isLate ? 'text-rose-500 font-bold' : 'text-slate-400 font-black'} uppercase">
-                                    ${isLate ? 'Overdue' : (deadlineDate ? 'Deadline: ' + formatDate(deadlineDate) : 'No deadline')}
+                    <div id="st-card-${t.id}" class="bg-white rounded-[2rem] border border-slate-100 shadow-sm transition-all duration-500 overflow-hidden flex flex-col">
+                        
+                        <div class="cursor-pointer px-6 py-5" onclick="app.toggleStudentTaskAccordion('${t.id}')">
+                            <div class="flex justify-between items-center">
+                                <div class="flex flex-col gap-1">
+                                    <div class="text-[10px] ${isLate ? 'text-rose-500 font-bold' : 'text-slate-400 font-black'} uppercase tracking-widest">
+                                        ${isLate ? 'Overdue' : (deadlineDate ? 'Deadline: ' + formatDate(deadlineDate) : 'No deadline')}
+                                    </div>
+                                    <div class="text-xs font-black ${isDone ? 'text-emerald-500' : 'text-slate-300'}">
+                                        ${isDone ? `<span class="flex items-center gap-1"><i data-lucide="check-circle-2" class="w-4 h-4"></i> ${t.score} pts.</span>` : 'Pending'}
+                                    </div>
                                 </div>
-                                <div class="text-xs font-black ${isDone ? 'text-emerald-500' : 'text-slate-300'}">
-                                    ${isDone ? `<span class="flex items-center gap-1"><i data-lucide="check-circle-2" class="w-4 h-4"></i> ${t.score} pts.</span>` : 'Not submitted'}
-                                </div>
-                            </div>
-                            
-                            <h4 id="st-preview-${t.id}" class="font-black text-slate-800 text-lg line-clamp-2 transition-opacity duration-300">${t.question}</h4>
-                            
-                            <div class="w-full flex justify-end mt-2">
-                                 <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 transition-colors">
+
+                                <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
                                      <i id="st-chevron-${t.id}" data-lucide="chevron-down" class="w-5 h-5 transition-transform duration-300"></i>
                                 </div>
+                            </div>
+
+                            <div id="st-header-content-${t.id}" class="transition-all duration-300 opacity-100 overflow-hidden mt-4">
+                                ${t.imageUrl ? `
+                                    <div class="w-full h-32 rounded-2xl overflow-hidden mb-4 border border-slate-50">
+                                        <img src="${t.imageUrl}" class="w-full h-full object-cover">
+                                    </div>
+                                ` : ''}
+                                <h4 class="font-black text-slate-800 text-lg line-clamp-2">${t.question}</h4>
                             </div>
                         </div>
                         
                         <div id="st-body-${t.id}" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out bg-slate-50">
                              <div class="p-6 border-t border-slate-100">
-                                 
-                                 <div class="text-slate-800 font-bold text-lg mb-6 whitespace-pre-wrap leading-relaxed">${t.question}</div>
-
                                  ${t.imageUrl ? `
-                                    <div class="rounded-2xl overflow-hidden border border-slate-200 mb-6 group">
-                                        <img src="${t.imageUrl}" onclick="app.openImageModal(this.src)" class="w-full h-auto max-h-[400px] object-cover cursor-zoom-in transition-transform group-hover:scale-105">
+                                    <div class="rounded-2xl overflow-hidden border border-slate-200 mb-6 shadow-sm">
+                                        <img src="${t.imageUrl}" onclick="app.openImageModal(this.src)" class="w-full h-auto max-h-[400px] object-cover cursor-zoom-in">
                                     </div>
                                  ` : ''}
+
+                                 <div class="text-slate-800 font-bold text-lg mb-6 whitespace-pre-wrap leading-relaxed">${t.question}</div>
                                  
                                  ${isDone ? `
-                                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-inner">
+                                    <div class="bg-white p-5 rounded-2xl border border-slate-200">
                                         <div class="text-[10px] font-black uppercase text-slate-400 mb-1 tracking-widest">Your Answer</div>
                                         <div class="font-bold text-slate-800 text-lg mb-2">${t.studentAnswer}</div>
-                                        
-                                        <div class="text-[10px] font-black uppercase text-slate-400 mb-1 tracking-widest mt-4">Score</div>
-                                        <div class="flex items-center gap-2">
+                                        <div class="h-px bg-slate-100 my-4"></div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-xs font-bold text-slate-400 uppercase">Points</span>
                                             <span class="text-2xl font-black text-blue-600">${t.score}</span>
-                                            <span class="text-sm font-bold text-slate-400">points</span>
                                         </div>
                                     </div>
                                    ` : `
                                     <div class="space-y-4">
-                                        <input type="text" id="input-${t.id}" class="w-full px-6 py-4 rounded-2xl bg-white border-2 border-slate-200 focus:border-blue-500 outline-none font-bold text-slate-800 transition-all" placeholder="Enter answer...">
-                                        <button onclick="app.submitTask('${t.id}', '${t.correctAnswer}', ${t.deadline ? t.deadline.seconds : 9999999999})" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-[0.98]">
-                                            Submit Answer
+                                        <input type="text" id="input-${t.id}" class="w-full px-6 py-4 rounded-2xl bg-white border-2 border-slate-200 focus:border-blue-500 outline-none font-bold text-slate-800 transition-all" placeholder="Your answer...">
+                                        <button onclick="app.submitTask('${t.id}', '${t.correctAnswer}', ${t.deadline ? t.deadline.seconds : 9999999999})" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">
+                                            Submit
                                         </button>
                                     </div>
                                     `}

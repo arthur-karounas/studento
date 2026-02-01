@@ -501,7 +501,7 @@
             <!-- STUDENT TAB: LESSONS -->
             <section id="tab-student-lessons">
                 <h2 class="text-3xl md:text-4xl font-black mb-8 text-slate-800 md:block hidden">Lessons</h2>
-                <div id="student-tasks-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+                <div id="student-tasks-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6"></div>
             </section>
 
             <!-- STUDENT TAB: RATING -->
@@ -1152,7 +1152,7 @@
                 headerContent.style.maxHeight = '600px'; 
                 headerContent.style.marginTop = '1rem';
             } else {
-    body.style.maxHeight = body.scrollHeight + "px"; // <--- Исправление: высота подстраивается под контент
+    body.style.maxHeight = (body.scrollHeight + 100) + "px"; // Добавили запас 100px
     chevron.style.transform = 'rotate(180deg)';
     headerContent.style.opacity = '0';
                 headerContent.style.maxHeight = '0px';
@@ -1432,9 +1432,8 @@
                 
                 html += `
                     <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm transition-all duration-300 overflow-hidden" id="task-card-${g.groupId}">
-                        <!-- Header (Clickable to toggle) -->
                         <div class="p-6 cursor-pointer" onclick="app.toggleTaskAccordion('${g.groupId}')">
-                            <div class="flex justify-between items-start mb-2">
+                            <div class="flex justify-between items-start mb-4">
                                 <div class="flex items-center gap-2">
                                     <div class="text-[10px] text-slate-400 font-black uppercase">Deadline: ${formatDate(g.deadline.toDate())}</div>
                                     ${isScheduled ? '<div class="bg-amber-50 text-amber-600 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider">Scheduled</div>' : ''}
@@ -1442,7 +1441,13 @@
                                 <button onclick="event.stopPropagation(); app.deleteTaskGroup('${g.groupId}')" class="text-slate-200 hover:text-rose-500 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
                             </div>
                             
-                            <h4 class="font-black text-slate-800 text-lg mb-4 line-clamp-2 whitespace-pre-wrap">${g.question}</h4>
+                            ${g.imageUrl ? `
+                                <div class="w-full h-48 rounded-2xl overflow-hidden mb-4 border border-slate-100 relative group">
+                                    <img src="${g.imageUrl}" onclick="event.stopPropagation(); app.openImageModal(this.src)" class="w-full h-full object-cover transition-transform group-hover:scale-105">
+                                </div>
+                            ` : ''}
+
+                            <h4 class="font-black text-slate-800 text-lg mb-4 whitespace-pre-wrap line-clamp-2">${g.question}</h4>
                             
                             <div class="flex items-center justify-between mt-2">
                                 <div class="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden mr-4 max-w-[150px]">
@@ -1454,15 +1459,12 @@
                             </div>
                         </div>
 
-                        <!-- Body (Hidden by default) -->
                         <div id="task-body-${g.groupId}" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out bg-slate-50">
                              <div class="p-6 border-t border-slate-100">
+
+                                <div class="text-slate-800 font-bold text-lg mb-6 whitespace-pre-wrap leading-relaxed border-b border-slate-200 pb-4">${g.question}</div>
+
                                 <div class="grid grid-cols-1 gap-4 mb-6">
-                                     ${g.imageUrl ? `
-                                        <div class="rounded-2xl overflow-hidden border border-slate-100 group">
-                                            <img src="${g.imageUrl}" onclick="app.openImageModal(this.src)" class="w-full h-auto max-h-[300px] object-cover cursor-zoom-in transition-transform group-hover:scale-105">
-                                        </div>
-                                     ` : ''}
                                     <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100/50">
                                         <div class="text-[10px] font-black uppercase text-indigo-400 mb-1 tracking-widest">Correct Answer</div>
                                         <div class="text-base font-black text-indigo-700">${g.correctAnswer}</div>
@@ -1901,8 +1903,9 @@
                                  
                                  ${isDone ? `
                                     <div class="bg-white p-5 rounded-2xl border border-slate-200">
-                                        <div class="text-[10px] font-black uppercase text-slate-400 mb-1 tracking-widest">Your Answer</div>
-                                        <div class="font-bold text-slate-800 text-lg mb-2">${t.studentAnswer}</div>
+                                        <div class="font-bold text-slate-800 text-lg mb-2 font-mono leading-relaxed">
+    ${getDiffHTML(t.studentAnswer, t.correctAnswer)}
+</div>
                                         <div class="h-px bg-slate-100 my-4"></div>
                                         <div class="flex items-center justify-between">
                                             <span class="text-xs font-bold text-slate-400 uppercase">Points</span>

@@ -377,20 +377,23 @@
                             <div id="wizard-step-1" class="space-y-6 max-w-xl mx-auto">
                                 <textarea id="task-text" rows="4" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none font-medium text-lg resize-none" placeholder="What needs to be done?"></textarea>
                                 
-                                <!-- Image Input Section -->
+                                <!-- Image Input Section (Updated for up to 3 photos) -->
                                 <div>
-                                    <label class="block text-sm font-bold text-slate-400 mb-2 ml-2 uppercase tracking-wide">Image (Optional)</label>
-                                    <div class="flex gap-2 mb-2">
-                                        <input type="text" id="task-image-url" oninput="app.previewImageFromUrl()" class="flex-1 px-6 py-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 outline-none font-medium truncate" placeholder="Paste Image URL or Upload">
-                                        <label class="px-4 py-4 bg-slate-100 rounded-2xl cursor-pointer hover:bg-slate-200 transition-colors flex-shrink-0" title="Upload Image">
+                                    <label class="block text-sm font-bold text-slate-400 mb-2 ml-2 uppercase tracking-wide">Images (Max 3)</label>
+                                    
+                                    <div class="flex gap-2 mb-4">
+                                        <input type="text" id="new-image-url" class="flex-1 px-6 py-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 outline-none font-medium truncate" placeholder="Paste URL and click Add">
+                                        
+                                        <button onclick="app.addImageFromUrl()" class="px-6 py-4 bg-slate-800 text-white rounded-2xl font-bold hover:bg-slate-700 transition-colors">Add</button>
+
+                                        <label class="px-5 py-4 bg-slate-100 rounded-2xl cursor-pointer hover:bg-slate-200 transition-colors flex-shrink-0" title="Upload Image">
                                             <i data-lucide="image-plus" class="w-6 h-6 text-slate-500"></i>
                                             <input type="file" id="task-image-file" accept="image/*" class="hidden" onchange="app.handleImageUpload(this)">
                                         </label>
                                     </div>
-                                    <div id="image-preview-container" class="hidden relative w-full h-48 bg-slate-50 rounded-2xl overflow-hidden border-2 border-slate-100 mt-2">
-                                        <img id="image-preview" class="w-full h-full object-cover">
-                                        <button onclick="app.clearImage()" class="absolute top-3 right-3 bg-white/80 hover:bg-white text-rose-500 p-2 rounded-xl shadow-sm backdrop-blur-sm transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                                    </div>
+                                    
+                                    <!-- Grid for active images -->
+                                    <div id="active-images-list" class="grid grid-cols-3 gap-3"></div>
                                 </div>
                                 
                                 <!-- Answer Type Selection -->
@@ -558,6 +561,7 @@
         let statsChart = null;
         let currentEditingTaskId = null;
         let currentReactionTargetId = null; // Stores ID of the student we are sending reaction to
+        let currentDraftImages = []; // Stores images for the task currently being created
 
         // === GLOBAL STRING COMPARISON FUNCTIONS (Levenshtein Algorithm) ===
         function levenshtein(a, b) {
@@ -619,8 +623,8 @@
                         dp[i][j] = dp[i - 1][j - 1];
                     } else {
                         dp[i][j] = Math.min(
-                            dp[i - 1][j] + 1,       // Deletion
-                            dp[i][j - 1] + 1,       // Insertion
+                            dp[i - 1][j] + 1,        // Deletion
+                            dp[i][j - 1] + 1,        // Insertion
                             dp[i - 1][j - 1] + 1  // Substitution
                         );
                     }
@@ -641,7 +645,7 @@
                     j--;
                 } else if (i > 0 && (j === 0 || dp[i][j] === dp[i - 1][j] + 1)) {
                     // Deletion (present in student, extra) -> Red strikethrough
-                      html = `<span class="bg-rose-200 text-rose-600 line-through px-0.5 rounded mx-0.5 opacity-80 decoration-2 decoration-rose-500">${s[i - 1]}</span>` + html;
+                       html = `<span class="bg-rose-200 text-rose-600 line-through px-0.5 rounded mx-0.5 opacity-80 decoration-2 decoration-rose-500">${s[i - 1]}</span>` + html;
                     i--;
                 } else {
                       // Substitution -> Show red what was, green what should be
@@ -907,14 +911,15 @@ setTeacherAuthMode: (mode) => {
             openNewTaskForm: (draftId = null) => {
                 document.getElementById('task-creation-wizard').classList.remove('hidden');
                 editingDraftId = draftId;
+                currentDraftImages = []; // Reset images
 
                 // Reset inputs
                 document.getElementById('task-text').value = '';
                 document.getElementById('task-answer').value = '';
                 document.getElementById('task-deadline').value = '';
                 document.getElementById('task-publish-date').value = '';
-                document.getElementById('task-image-url').value = '';
-                app.clearImage(); // Clear preview
+                document.getElementById('new-image-url').value = '';
+                app.renderImagePreviews();
 
                 document.querySelector('input[name="answerType"][value="mixed"]').checked = true; // Default
                 document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = false);
@@ -929,10 +934,13 @@ setTeacherAuthMode: (mode) => {
                         if (draft.deadline) document.getElementById('task-deadline').value = draft.deadline; 
                         if (draft.publishAt) document.getElementById('task-publish-date').value = draft.publishAt;
                         
-                        if (draft.imageUrl) {
-                            document.getElementById('task-image-url').value = draft.imageUrl;
-                            app.previewImageFromUrl();
+                        // Handle multiple images (backward compatibility with imageUrl)
+                        if (draft.imageUrls && Array.isArray(draft.imageUrls)) {
+                            currentDraftImages = draft.imageUrls;
+                        } else if (draft.imageUrl) {
+                            currentDraftImages = [draft.imageUrl];
                         }
+                        app.renderImagePreviews();
 
                         // Set Answer Type
                         if (draft.answerType) {
@@ -953,13 +961,36 @@ setTeacherAuthMode: (mode) => {
             },
             
             // --- IMAGE HANDLING START ---
+            addImageFromUrl: () => {
+                const urlInput = document.getElementById('new-image-url');
+                const url = urlInput.value.trim();
+                if (!url) return;
+                
+                if (currentDraftImages.length >= 3) {
+                    notify("Max 3 images allowed", "error");
+                    return;
+                }
+                
+                currentDraftImages.push(url);
+                urlInput.value = '';
+                app.renderImagePreviews();
+            },
+
             handleImageUpload: (input) => {
                 const file = input.files[0];
                 if (!file) return;
 
-                // Removed the strict 2MB check here.
-                // We will compress it. But maybe a sane upper limit of 20MB to avoid crashing browser memory.
-                if (file.size > 20 * 1024 * 1024) return notify("File too huge (>20MB)", "error");
+                if (currentDraftImages.length >= 3) {
+                    notify("Max 3 images allowed", "error");
+                    input.value = '';
+                    return;
+                }
+
+                if (file.size > 20 * 1024 * 1024) {
+                    notify("File too huge (>20MB)", "error");
+                    input.value = '';
+                    return;
+                }
 
                 notify("Processing image...", "info"); // User feedback
 
@@ -971,7 +1002,6 @@ setTeacherAuthMode: (mode) => {
                         let width = img.width;
                         let height = img.height;
                         
-                        // Start with a reasonable max dimension
                         let MAX_DIM = 1000; 
                         let quality = 0.7;
 
@@ -990,25 +1020,19 @@ setTeacherAuthMode: (mode) => {
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, currW, currH);
 
-                            // Attempt conversion
                             const dataUrl = canvas.toDataURL('image/jpeg', quality);
                             
-                            // Check size (Base64 length ~ 4/3 of binary size)
-                            // Firestore limit is 1MB. Safe limit ~900KB string length.
                             if (dataUrl.length > 900000) {
-                                // Too big, reduce constraints and try again
-                                MAX_DIM = Math.floor(MAX_DIM * 0.8); // Reduce dimensions by 20%
-                                quality = Math.max(0.5, quality - 0.1); // Reduce quality slightly, floor at 0.5
+                                MAX_DIM = Math.floor(MAX_DIM * 0.8);
+                                quality = Math.max(0.5, quality - 0.1);
                                 if (MAX_DIM < 300) {
                                     notify("Image too complex to compress safely.", "error");
-                                    return; // Give up
+                                    return;
                                 }
-                                compress(); // Recursion
+                                compress();
                             } else {
-                                // Success
-                                document.getElementById('task-image-url').value = dataUrl;
-                                document.getElementById('image-preview').src = dataUrl;
-                                document.getElementById('image-preview-container').classList.remove('hidden');
+                                currentDraftImages.push(dataUrl);
+                                app.renderImagePreviews();
                                 notify("Image attached!", "success");
                             }
                         };
@@ -1021,20 +1045,22 @@ setTeacherAuthMode: (mode) => {
                 input.value = '';
             },
 
-            previewImageFromUrl: () => {
-                const url = document.getElementById('task-image-url').value.trim();
-                if (url) {
-                    document.getElementById('image-preview').src = url;
-                    document.getElementById('image-preview-container').classList.remove('hidden');
-                } else {
-                    app.clearImage();
-                }
+            removeImage: (index) => {
+                currentDraftImages.splice(index, 1);
+                app.renderImagePreviews();
             },
 
-            clearImage: () => {
-                document.getElementById('task-image-url').value = '';
-                document.getElementById('image-preview').src = '';
-                document.getElementById('image-preview-container').classList.add('hidden');
+            renderImagePreviews: () => {
+                const container = document.getElementById('active-images-list');
+                container.innerHTML = currentDraftImages.map((src, index) => `
+                    <div class="relative aspect-square rounded-xl overflow-hidden border border-slate-200 group">
+                        <img src="${src}" class="w-full h-full object-cover">
+                        <button onclick="app.removeImage(${index})" class="absolute top-1 right-1 bg-white text-rose-500 p-1.5 rounded-lg shadow-sm hover:bg-rose-50 transition-colors">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `).join('');
+                lucide.createIcons();
             },
             // --- IMAGE HANDLING END ---
 
@@ -1047,7 +1073,6 @@ setTeacherAuthMode: (mode) => {
                     const deadline = document.getElementById('task-deadline').value;
                     const publishAt = document.getElementById('task-publish-date').value;
                     const answerType = document.querySelector('input[name="answerType"]:checked').value;
-                    const imageUrl = document.getElementById('task-image-url').value.trim();
                     const checked = Array.from(document.querySelectorAll('.student-checkbox:checked')).map(cb => cb.value);
 
                     const draftData = {
@@ -1057,7 +1082,8 @@ setTeacherAuthMode: (mode) => {
                         answerType,
                         deadline, 
                         publishAt,
-                        imageUrl, // Save image
+                        imageUrls: currentDraftImages, // Save all images
+                        imageUrl: currentDraftImages[0] || "", // For backward compatibility
                         studentIds: checked,
                         updatedAt: Date.now()
                     };
@@ -1132,7 +1158,6 @@ setTeacherAuthMode: (mode) => {
                 const deadlineVal = document.getElementById('task-deadline').value;
                 const publishVal = document.getElementById('task-publish-date').value;
                 const answerType = document.querySelector('input[name="answerType"]:checked').value;
-                const imageUrl = document.getElementById('task-image-url').value.trim();
                 const checked = document.querySelectorAll('.student-checkbox:checked');
                 
                 if (!text || !answer || !deadlineVal || checked.length === 0) return notify("Fill in everything", "error");
@@ -1145,7 +1170,9 @@ setTeacherAuthMode: (mode) => {
                     const promises = Array.from(checked).map(cb => {
                         return addDoc(getColPath('tasks'), {
                             groupId, teacherId: auth.currentUser.uid, studentId: cb.value, studentName: cb.dataset.name,
-                            question: text, correctAnswer: answer, answerType: answerType, imageUrl: imageUrl,
+                            question: text, correctAnswer: answer, answerType: answerType, 
+                            imageUrls: currentDraftImages, // Save all images
+                            imageUrl: currentDraftImages[0] || "", // For backward compat
                             deadline: deadline,
                             publishAt: publishAt,
                             status: 'assigned', score: 0, createdAt: Date.now()
@@ -1302,7 +1329,7 @@ setTeacherAuthMode: (mode) => {
                     
                     if (!isTeacher) {
                         // For students: limit 2 total
-                         if (!existingToTarget && myReactions.length >= 2) {
+                          if (!existingToTarget && myReactions.length >= 2) {
                             notify("Max 2 reactions allowed!", "error");
                             app.closeEmojiModal();
                             return;
@@ -1513,6 +1540,11 @@ setTeacherAuthMode: (mode) => {
                 const isScheduled = g.publishAt && g.publishAt.toMillis() > Date.now();
                 const publishDate = g.publishAt ? formatDate(g.publishAt.toDate()) : 'Now';
                 
+                // Compatibility for images
+                let images = [];
+                if (g.imageUrls && Array.isArray(g.imageUrls)) images = g.imageUrls;
+                else if (g.imageUrl) images = [g.imageUrl];
+                
                 html += `
                     <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm transition-all duration-300 overflow-hidden" id="task-card-${g.groupId}">
                         <div class="p-6 cursor-pointer" onclick="app.toggleTaskAccordion('${g.groupId}')">
@@ -1524,9 +1556,14 @@ setTeacherAuthMode: (mode) => {
                                 <button onclick="event.stopPropagation(); app.deleteTaskGroup('${g.groupId}')" class="text-slate-200 hover:text-rose-500 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
                             </div>
                             
-                            ${g.imageUrl ? `
-                                <div class="w-full h-48 rounded-2xl overflow-hidden mb-4 border border-slate-100 relative group">
-                                    <img src="${g.imageUrl}" onclick="event.stopPropagation(); app.openImageModal(this.src)" class="w-full h-full object-cover transition-transform group-hover:scale-105">
+                            <!-- Image Grid -->
+                            ${images.length > 0 ? `
+                                <div class="grid grid-cols-${Math.min(3, images.length)} gap-2 mb-4">
+                                    ${images.map(src => `
+                                        <div class="aspect-square rounded-2xl overflow-hidden border border-slate-100 relative group/img">
+                                            <img src="${src}" onclick="event.stopPropagation(); app.openImageModal(this.src)" class="w-full h-full object-cover transition-transform group-hover/img:scale-105">
+                                        </div>
+                                    `).join('')}
                                 </div>
                             ` : ''}
 
@@ -1919,7 +1956,7 @@ setTeacherAuthMode: (mode) => {
                                 
                                 ${!isMe ? `
                                     <button onclick="app.openEmojiModal('${user.id}', ${!!myReactionToHim})" class="ml-1 w-6 h-6 rounded-full bg-slate-100 hover:bg-blue-100 text-slate-400 hover:text-blue-500 flex items-center justify-center transition-all ${myReactionToHim ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-200' : ''}">
-                                        <i data-lucide="${myReactionToHim ? 'pencil' : 'smile-plus'}" class="w-3 h-3"></i>
+                                            <i data-lucide="${myReactionToHim ? 'pencil' : 'smile-plus'}" class="w-3 h-3"></i>
                                     </button>
                                 ` : ''}
                             </div>
@@ -1964,6 +2001,11 @@ setTeacherAuthMode: (mode) => {
                 const deadlineDate = t.deadline ? t.deadline.toDate() : null;
                 const isLate = deadlineDate && (Date.now() > deadlineDate.getTime()) && !isDone;
 
+                // Handle multiple images
+                let images = [];
+                if (t.imageUrls && Array.isArray(t.imageUrls)) images = t.imageUrls;
+                else if (t.imageUrl) images = [t.imageUrl];
+
                 html += `
                     <div id="st-card-${t.id}" class="bg-white rounded-[2rem] border border-slate-100 shadow-sm transition-all duration-500 overflow-hidden flex flex-col group">
                         
@@ -1982,10 +2024,15 @@ setTeacherAuthMode: (mode) => {
                                      <i id="st-chevron-${t.id}" data-lucide="chevron-down" class="w-5 h-5 transition-transform duration-300"></i>
                                 </div>
                             </div>
-
-                            ${t.imageUrl ? `
-                                <div class="w-full h-48 rounded-2xl overflow-hidden mb-4 border border-slate-100 relative">
-                                    <img src="${t.imageUrl}" onclick="event.stopPropagation(); app.openImageModal(this.src)" class="w-full h-full object-cover transition-transform hover:scale-105">
+                            
+                            <!-- Image Grid -->
+                            ${images.length > 0 ? `
+                                <div class="grid grid-cols-${Math.min(3, images.length)} gap-2 mb-4">
+                                    ${images.map(src => `
+                                        <div class="aspect-square rounded-2xl overflow-hidden border border-slate-100 relative group/img">
+                                            <img src="${src}" onclick="event.stopPropagation(); app.openImageModal(this.src)" class="w-full h-full object-cover transition-transform group-hover/img:scale-105">
+                                        </div>
+                                    `).join('')}
                                 </div>
                             ` : ''}
 

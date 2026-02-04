@@ -1487,11 +1487,6 @@ setTeacherAuthMode: (mode) => {
             });
             groupedTasks = Object.values(groupsMap).sort((a, b) => b.createdAt - a.createdAt);
             
-            if (groupedTasks.length === 0 && drafts.length === 0) {
-                container.innerHTML = '<div class="col-span-full py-20 text-center text-slate-300 font-bold italic">Empty</div>';
-                return;
-            }
-
             let html = '';
             
             // Render Drafts first
@@ -1688,91 +1683,110 @@ setTeacherAuthMode: (mode) => {
         }
 
         async function loadTeacherLeaderboard() {
-            if (!auth.currentUser) return;
-            const teacherId = auth.currentUser.uid;
+    if (!auth.currentUser) return;
+    const teacherId = auth.currentUser.uid;
 
-            // Load data
-            const [studentsSnap, tasksSnap, reactionsSnap] = await Promise.all([ 
-                getDocs(getColPath('students')), 
-                getDocs(getColPath('tasks')),
-                getDocs(getColPath('reactions'))
-            ]);
+    // Load data
+    const [studentsSnap, tasksSnap, reactionsSnap] = await Promise.all([
+        getDocs(getColPath('students')),
+        getDocs(getColPath('tasks')),
+        getDocs(getColPath('reactions'))
+    ]);
 
-            const classmates = studentsSnap.docs
-                .map(d => ({id: d.id, ...d.data()}))
-                .filter(s => s.teacherId === teacherId);
+    const classmates = studentsSnap.docs
+        .map(d => ({id: d.id, ...d.data()}))
+        .filter(s => s.teacherId === teacherId);
 
-            const allTasks = tasksSnap.docs
-                .map(d => d.data())
-                .filter(t => t.teacherId === teacherId);
-                
-            const allReactions = reactionsSnap.docs
-                .map(d => d.data());
+    // 1. First declaration (KEEP THIS ONE)
+    const container = document.getElementById('teacher-rating-list');
 
-            // Calculate scores
-            const scores = {};
-            classmates.forEach(s => scores[s.id] = 0);
-            allTasks.forEach(t => { if (scores[t.studentId] !== undefined) scores[t.studentId] += (t.score || 0); });
+    if (classmates.length === 0) {
+        container.innerHTML = '<div class="text-center text-slate-300 py-20 font-bold italic">Class is empty</div>';
+        return;
+    }
 
-            // Sort
-            const leaderboard = classmates.map(s => ({
-                id: s.id,
-                name: s.name, 
-                score: scores[s.id]
-            })).sort((a, b) => b.score - a.score);
+    const allTasks = tasksSnap.docs
+        .map(d => d.data())
+        .filter(t => t.teacherId === teacherId);
 
-            const container = document.getElementById('teacher-rating-list');
-            let html = `<div class="bg-white rounded-[2rem] border border-slate-100 p-2">`;
-            
-            leaderboard.forEach((user, index) => {
-                const rank = index + 1;
-                
-                const receivedReactions = allReactions.filter(r => r.toStudentId === user.id);
-                // Find reaction from ME (TEACHER)
-                const myReactionToHim = receivedReactions.find(r => r.fromStudentId === teacherId);
-                
-                let iconColor = 'bg-slate-100 text-slate-500';
-                let iconContent = rank;
-                if (rank === 1) { iconColor = 'bg-yellow-100 text-yellow-600'; iconContent = '<i data-lucide="trophy" class="w-4 h-4"></i>'; }
-                if (rank === 2) { iconColor = 'bg-slate-200 text-slate-600'; iconContent = '2'; }
-                if (rank === 3) { iconColor = 'bg-amber-100 text-amber-700'; iconContent = '3'; }
+    const allReactions = reactionsSnap.docs
+        .map(d => d.data());
 
-                html += `
-                    <div class="flex items-center gap-4 p-4 rounded-2xl">
-                        <div class="w-10 h-10 rounded-full ${iconColor} flex items-center justify-center font-black text-sm shrink-0">
-                            ${iconContent}
-                        </div>
-                        <div class="flex-grow min-w-0">
-                            <div class="font-bold text-slate-700 text-lg truncate">${user.name}</div>
-                            
-                            <!-- Emojis Container -->
-                            <div class="flex flex-wrap gap-1 mt-1">
-                                ${receivedReactions.map(r => {
-                                    if (r.isTeacher) {
-                                        return `
-                                            <div class="emoji-pop relative group cursor-help inline-flex items-center gap-1 mx-0.5 bg-indigo-600 text-white rounded-full px-2 py-0.5 shadow-md" title="Teacher's reaction">
-                                                <span class="text-[9px] font-black uppercase tracking-wider">TEACHER</span>
-                                                <span class="text-sm border-l border-white/30 pl-1 ml-0.5">${r.emoji}</span>
-                                            </div>`;
-                                    }
-                                    return `<span class="emoji-pop text-sm cursor-help relative rounded-full px-1 hover:bg-slate-100 transition-colors" title="Anonymous">${r.emoji}</span>`;
-                                }).join('')}
-                                
-                                <button onclick="app.openEmojiModal('${user.id}', ${!!myReactionToHim})" class="ml-1 w-6 h-6 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-400 hover:text-indigo-500 flex items-center justify-center transition-all ${myReactionToHim ? 'bg-indigo-100 text-indigo-600 ring-2 ring-indigo-200' : ''}">
-                                    <i data-lucide="${myReactionToHim ? 'pencil' : 'smile-plus'}" class="w-3 h-3"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="font-black text-xl text-slate-800">${user.score}</div>
-                    </div>
-                    ${index < leaderboard.length - 1 ? '<div class="h-px bg-slate-50 mx-4"></div>' : ''}
-                `;
-            });
+    // Calculate scores
+    const scores = {};
+    classmates.forEach(s => scores[s.id] = 0);
+    allTasks.forEach(t => {
+        if (scores[t.studentId] !== undefined) scores[t.studentId] += (t.score || 0);
+    });
 
-            html += `</div>`;
-            container.innerHTML = html;
-            lucide.createIcons();
+    // Sort
+    const leaderboard = classmates.map(s => ({
+        id: s.id,
+        name: s.name,
+        score: scores[s.id]
+    })).sort((a, b) => b.score - a.score);
+
+    // 2. Second declaration REMOVED (The variable 'container' already exists)
+    // const container = document.getElementById('teacher-rating-list');  <-- DELETED THIS LINE
+
+    let html = `<div class="bg-white rounded-[2rem] border border-slate-100 p-2">`;
+
+    leaderboard.forEach((user, index) => {
+        const rank = index + 1;
+
+        const receivedReactions = allReactions.filter(r => r.toStudentId === user.id);
+        const myReactionToHim = receivedReactions.find(r => r.fromStudentId === teacherId);
+
+        let iconColor = 'bg-slate-100 text-slate-500';
+        let iconContent = rank;
+        if (rank === 1) {
+            iconColor = 'bg-yellow-100 text-yellow-600';
+            iconContent = '<i data-lucide="trophy" class="w-4 h-4"></i>';
         }
+        if (rank === 2) {
+            iconColor = 'bg-slate-200 text-slate-600';
+            iconContent = '2';
+        }
+        if (rank === 3) {
+            iconColor = 'bg-amber-100 text-amber-700';
+            iconContent = '3';
+        }
+
+        html += `
+            <div class="flex items-center gap-4 p-4 rounded-2xl">
+                <div class="w-10 h-10 rounded-full ${iconColor} flex items-center justify-center font-black text-sm shrink-0">
+                    ${iconContent}
+                </div>
+                <div class="flex-grow min-w-0">
+                    <div class="font-bold text-slate-700 text-lg truncate">${user.name}</div>
+                    
+                    <div class="flex flex-wrap gap-1 mt-1">
+                        ${receivedReactions.map(r => {
+                            if (r.isTeacher) {
+                                return `
+                                    <div class="emoji-pop relative group cursor-help inline-flex items-center gap-1 mx-0.5 bg-indigo-600 text-white rounded-full px-2 py-0.5 shadow-md" title="Teacher's reaction">
+                                        <span class="text-[9px] font-black uppercase tracking-wider">TEACHER</span>
+                                        <span class="text-sm border-l border-white/30 pl-1 ml-0.5">${r.emoji}</span>
+                                    </div>`;
+                            }
+                            return `<span class="emoji-pop text-sm cursor-help relative rounded-full px-1 hover:bg-slate-100 transition-colors" title="Anonymous">${r.emoji}</span>`;
+                        }).join('')}
+                        
+                        <button onclick="app.openEmojiModal('${user.id}', ${!!myReactionToHim})" class="ml-1 w-6 h-6 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-400 hover:text-indigo-500 flex items-center justify-center transition-all ${myReactionToHim ? 'bg-indigo-100 text-indigo-600 ring-2 ring-indigo-200' : ''}">
+                            <i data-lucide="${myReactionToHim ? 'pencil' : 'smile-plus'}" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="font-black text-xl text-slate-800">${user.score}</div>
+            </div>
+            ${index < leaderboard.length - 1 ? '<div class="h-px bg-slate-50 mx-4"></div>' : ''}
+        `;
+    });
+
+    html += `</div>`;
+    container.innerHTML = html;
+    lucide.createIcons();
+}
 
         async function loadStudentLeaderboard() {
             if (!currentStudentData || !currentStudentId) return;

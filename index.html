@@ -397,32 +397,21 @@
                                 </div>
                                 
                                 <!-- Answer Type Selection -->
-                                <div class="bg-slate-100 p-1.5 rounded-2xl flex gap-1 flex-wrap sm:flex-nowrap">
-                                    <label class="flex-1 cursor-pointer min-w-[80px]">
-                                        <input type="radio" name="answerType" value="digits" class="peer sr-only" onchange="app.updateAnswerTypeUI()">
-                                        <div class="py-3 px-2 rounded-xl text-center text-xs sm:text-sm font-bold text-slate-400 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all flex items-center justify-center gap-2">
-                                            <span>🔢</span> Digits
-                                        </div>
-                                    </label>
-                                    <label class="flex-1 cursor-pointer min-w-[80px]">
-                                        <input type="radio" name="answerType" value="text" class="peer sr-only" onchange="app.updateAnswerTypeUI()">
-                                        <div class="py-3 px-2 rounded-xl text-center text-xs sm:text-sm font-bold text-slate-400 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all flex items-center justify-center gap-2">
-                                            <span>🔠</span> Letters
-                                        </div>
-                                    </label>
-                                    <label class="flex-1 cursor-pointer min-w-[80px]">
-                                        <input type="radio" name="answerType" value="mixed" class="peer sr-only" checked onchange="app.updateAnswerTypeUI()">
-                                        <div class="py-3 px-2 rounded-xl text-center text-xs sm:text-sm font-bold text-slate-400 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all flex items-center justify-center gap-2">
-                                            <span>💡</span> Mixed
-                                        </div>
-                                    </label>
-                                    <label class="flex-1 cursor-pointer min-w-[80px]">
-                                        <input type="radio" name="answerType" value="manual" class="peer sr-only" onchange="app.updateAnswerTypeUI()">
-                                        <div class="py-3 px-2 rounded-xl text-center text-xs sm:text-sm font-bold text-slate-400 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all flex items-center justify-center gap-2">
-                                            <span>👁️</span> Manual
-                                        </div>
-                                    </label>
-                                </div>
+                                <div class="bg-slate-100 p-1.5 rounded-2xl flex gap-1">
+    <label class="flex-1 cursor-pointer">
+        <input type="radio" name="answerType" value="mixed" class="peer sr-only" checked onchange="app.updateAnswerTypeUI()">
+        <div class="py-3 px-2 rounded-xl text-center text-sm font-bold text-slate-400 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all flex items-center justify-center gap-2">
+            <span>✨</span> Auto Check
+        </div>
+    </label>
+
+    <label class="flex-1 cursor-pointer">
+        <input type="radio" name="answerType" value="manual" class="peer sr-only" onchange="app.updateAnswerTypeUI()">
+        <div class="py-3 px-2 rounded-xl text-center text-sm font-bold text-slate-400 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all flex items-center justify-center gap-2">
+            <span>👁️</span> Manual Review
+        </div>
+    </label>
+</div>
 
                                 <input type="text" id="task-answer" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none font-bold" placeholder="Correct Answer (for reference)">
                                 <button onclick="app.nextWizardStep(2)" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-lg">Next</button>

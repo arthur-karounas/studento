@@ -210,26 +210,51 @@
 
     <!-- LOGIN SCREENS -->
     <div id="screen-teacher-login" class="screen hidden min-h-screen flex items-center justify-center p-0 md:p-6 bg-white md:bg-[#FFFFFF]">
-        <div class="login-card max-w-sm w-full bg-white rounded-[2.5rem] p-8 md:p-10 md:shadow-2xl md:border md:border-slate-50 animate-slide-up text-center">
-            <button onclick="app.showScreen('screen-main')" class="text-slate-400 hover:text-indigo-600 mb-10 flex items-center justify-center gap-2 text-sm font-extrabold transition-colors mx-auto">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
-            </button>
-            <div class="mb-10">
-                <div class="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
-                    <i data-lucide="graduation-cap" class="w-10 h-10"></i>
-                </div>
-                <h2 class="text-4xl font-black text-slate-800 tracking-tight">Teacher</h2>
+    <div class="login-card max-w-sm w-full bg-white rounded-[2.5rem] p-8 md:p-10 md:shadow-2xl md:border md:border-slate-50 animate-slide-up text-center">
+        
+        <button onclick="app.showScreen('screen-main')" class="text-slate-400 hover:text-indigo-600 mb-8 flex items-center justify-center gap-2 text-sm font-extrabold transition-colors mx-auto">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Back
+        </button>
+
+        <div class="mb-8">
+            <div class="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <i data-lucide="graduation-cap" class="w-10 h-10"></i>
             </div>
-            <div class="space-y-4">
-                <input type="email" id="t-email" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none font-bold text-center placeholder:text-slate-300" placeholder="Email">
-                <input type="password" id="t-password" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none font-bold text-center placeholder:text-slate-300" placeholder="Password">
-                <div class="pt-4 space-y-3">
-                    <button onclick="app.teacherLogin()" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-[0.98]">Log In</button>
-                    <button onclick="app.teacherRegister()" class="w-full py-4 text-indigo-600 font-bold hover:bg-indigo-50 rounded-2xl transition-all">No account? Create one</button>
-                </div>
+            <h2 class="text-4xl font-black text-slate-800 tracking-tight">Teacher</h2>
+        </div>
+
+        <div class="space-y-4">
+            
+            <div class="relative bg-slate-100 p-1.5 rounded-2xl flex mb-6">
+                <div id="auth-slider-bg" class="absolute top-1.5 left-1.5 bottom-1.5 w-[calc(50%-6px)] bg-white rounded-xl shadow-sm transition-all duration-300 ease-out transform translate-x-0"></div>
+
+                <button onclick="app.setTeacherAuthMode('login')" id="btn-auth-login" class="flex-1 relative z-10 py-3 text-sm font-black text-indigo-600 transition-colors duration-300">
+                    Log In
+                </button>
+
+                <button onclick="app.setTeacherAuthMode('register')" id="btn-auth-register" class="flex-1 relative z-10 py-3 text-sm font-black text-slate-400 transition-colors duration-300">
+                    Sign Up
+                </button>
             </div>
+
+            <input type="email" id="t-email" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none font-bold text-center placeholder:text-slate-300" placeholder="Email">
+
+<div class="relative">
+    <input type="password" id="t-password" oninput="app.checkPasswordStrength(this.value)" class="w-full px-6 py-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none font-bold text-center placeholder:text-slate-300" placeholder="Password">
+    
+    <div id="password-strength-container" class="hidden absolute -bottom-3 left-6 right-6 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div id="password-strength-bar" class="h-full w-0 bg-rose-500 transition-all duration-300 ease-out"></div>
+    </div>
+</div>
+            <div class="pt-2">
+                <button onclick="app.submitTeacherAuth()" id="btn-auth-action" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-[0.98]">
+                    Log In
+                </button>
+            </div>
+
         </div>
     </div>
+</div>
 
     <div id="screen-student-login" class="screen hidden min-h-screen flex items-center justify-center p-0 md:p-6 bg-white md:bg-[#FFFFFF]">
         <div class="login-card max-w-sm w-full bg-white rounded-[2.5rem] p-8 md:p-10 md:shadow-2xl md:border md:border-slate-50 animate-slide-up text-center">
@@ -429,10 +454,7 @@
             <!-- TAB: STATS -->
             <section id="tab-stats" class="hidden">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-8 px-2">
-        <div>
-            <h2 class="text-3xl md:text-4xl font-black text-slate-800">Performance</h2>
-            <p class="text-slate-500 mt-1 font-medium">Class activity and progress analysis</p>
-        </div>
+        
     </div>
 
     <div class="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-slate-100 mb-8">
@@ -718,6 +740,76 @@
                 img.classList.add('scale-95');
                 document.body.classList.remove('modal-open');
             },
+
+            submitTeacherAuth: () => {
+                if (window.app.teacherAuthMode === 'login') {
+                    app.teacherLogin();
+                } else {
+                    app.teacherRegister();
+                }
+            },
+
+            teacherAuthMode: 'login',
+
+// 1. Новая функция для расчета цвета и ширины
+checkPasswordStrength: (val) => {
+    const bar = document.getElementById('password-strength-bar');
+    const len = val.length;
+    
+    // Максимум 6 символов для полной полоски
+    // (Math.min гарантирует, что мы не превысим 100%)
+    const percentage = Math.min(100, (len / 6) * 100);
+    
+    bar.style.width = percentage + '%';
+
+    // Логика цветов:
+    // Удаляем старые классы цветов
+    bar.classList.remove('bg-rose-500', 'bg-amber-400', 'bg-emerald-500');
+
+    if (len === 0) {
+        bar.classList.add('bg-rose-500'); // Пусто - красный
+    } else if (len < 4) {
+        bar.classList.add('bg-rose-500'); // Мало - красный
+    } else if (len < 6) {
+        bar.classList.add('bg-amber-400'); // Почти - желтый/оранжевый
+    } else {
+        bar.classList.add('bg-emerald-500'); // Готово - зеленый
+    }
+},
+
+// 2. Обновленная функция переключения (добавлена логика strengthContainer)
+setTeacherAuthMode: (mode) => {
+    window.app.teacherAuthMode = mode;
+    
+    const slider = document.getElementById('auth-slider-bg');
+    const btnLogin = document.getElementById('btn-auth-login');
+    const btnRegister = document.getElementById('btn-auth-register');
+    const actionBtn = document.getElementById('btn-auth-action');
+    const strengthContainer = document.getElementById('password-strength-container');
+    const passwordInput = document.getElementById('t-password');
+
+    if (mode === 'login') {
+        // Режим Входа
+        slider.style.transform = 'translateX(0)';
+        btnLogin.classList.replace('text-slate-400', 'text-indigo-600');
+        btnRegister.classList.replace('text-indigo-600', 'text-slate-400');
+        actionBtn.textContent = 'Log In';
+        
+        // Скрываем полоску
+        strengthContainer.classList.add('hidden');
+    } else {
+        // Режим Регистрации
+        slider.style.transform = 'translateX(100%)'; 
+        btnLogin.classList.replace('text-indigo-600', 'text-slate-400');
+        btnRegister.classList.replace('text-slate-400', 'text-indigo-600');
+        actionBtn.textContent = 'Create Account';
+        
+        // Показываем полоску
+        strengthContainer.classList.remove('hidden');
+        // Сразу проверяем текущее значение (если пользователь уже что-то ввел)
+        app.checkPasswordStrength(passwordInput.value);
+    }
+},
 
             setTeacherTab: (tab) => {
                 if (activeTeacherTab === tab && !document.getElementById(`tab-${tab}`).classList.contains('hidden')) {

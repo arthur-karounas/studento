@@ -138,6 +138,27 @@
         </div>
     </div>
 
+    <!-- MODAL: RECEIVE SUPPORT (NEW) -->
+    <div id="modal-receive-support" class="fixed inset-0 z-[190] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md"></div>
+        <div class="relative bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 animate-slide-up text-center">
+            <div class="w-20 h-20 bg-pink-50 text-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <i data-lucide="gift" class="w-10 h-10"></i>
+            </div>
+            <h3 class="text-2xl font-black text-slate-800 mb-2">You got a wish!</h3>
+            <p class="text-slate-400 font-bold uppercase text-xs tracking-widest mb-6">From a random classmate</p>
+            
+            <div class="bg-pink-50 p-6 rounded-2xl mb-8 relative">
+                <i data-lucide="quote" class="absolute top-4 left-4 w-6 h-6 text-pink-200"></i>
+                <p id="receive-support-text" class="text-slate-700 font-bold text-lg italic relative z-10 leading-relaxed">...</p>
+            </div>
+
+            <button onclick="app.acceptSupportMessage()" class="w-full py-4 bg-pink-500 text-white rounded-2xl font-bold hover:bg-pink-600 transition-all shadow-lg shadow-pink-200 flex items-center justify-center gap-2">
+                <span>Thanks</span> <i data-lucide="heart" class="w-5 h-5 fill-current"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- MODAL: EDIT SCORE -->
     <div id="modal-edit-score" class="fixed inset-0 z-[160] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md"></div>
@@ -271,6 +292,34 @@
             <div class="space-y-6">
                 <input type="text" id="s-phrase" class="w-full px-6 py-6 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white text-center font-black text-xl outline-none transition-all placeholder:font-bold placeholder:text-slate-200" placeholder="word word word">
                 <button onclick="app.studentLogin()" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-[0.98]">Enter Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-support-quest" class="fixed inset-0 z-[180] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onclick="app.closeSupportModal()"></div>
+        <div class="relative bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-8 animate-slide-up">
+            <div class="flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-pink-50 text-pink-500 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                    <i data-lucide="heart-handshake" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-2xl font-black text-slate-800 mb-2">Support a Friend</h3>
+                <p class="text-slate-500 mb-6 text-sm font-medium">Send a kind message to earn +1 point!</p>
+                
+                <div class="w-full space-y-4">
+                    <!-- Dropdown removed as per request for random assignment -->
+                    <div class="bg-slate-50 p-4 rounded-2xl text-slate-500 text-sm font-bold border-2 border-dashed border-slate-200">
+                        <i data-lucide="shuffle" class="w-4 h-4 inline-block mr-1 mb-0.5"></i>
+                        Your message will be sent to a random classmate!
+                    </div>
+
+                    <textarea id="support-message-text" rows="3" class="w-full px-6 py-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-pink-500 focus:bg-white outline-none font-bold text-slate-800 resize-none placeholder:font-normal" placeholder="Write something nice..."></textarea>
+
+                    <div class="flex gap-3 w-full pt-2">
+                        <button onclick="app.closeSupportModal()" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all">Cancel</button>
+                        <button onclick="app.submitSupportQuest()" class="flex-1 py-4 bg-pink-500 text-white rounded-2xl font-bold hover:bg-pink-600 transition-all shadow-lg shadow-pink-200">Send 💌</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -489,6 +538,9 @@
                 <button onclick="app.setStudentTab('lessons')" id="st-tab-btn-lessons" class="w-full px-6 py-4 rounded-2xl font-black flex items-center gap-4 shadow-sm student-active-tab transition-all hover:bg-blue-50">
                     <i data-lucide="book-open"></i> My Lessons
                 </button>
+                <button onclick="app.setStudentTab('quests')" id="st-tab-btn-quests" class="w-full px-6 py-4 rounded-2xl font-black flex items-center gap-4 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
+                    <i data-lucide="target"></i> Quests
+                </button>
                 <button onclick="app.setStudentTab('rating')" id="st-tab-btn-rating" class="w-full px-6 py-4 rounded-2xl font-black flex items-center gap-4 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
                     <i data-lucide="trophy"></i> Leaderboard
                 </button>
@@ -509,6 +561,9 @@
             <button onclick="app.setStudentTab('lessons')" id="st-mob-tab-lessons" class="flex flex-col items-center gap-1 p-3 text-blue-500 font-black text-[10px] student-mobile-active-tab">
                 <i data-lucide="book-open" class="w-6 h-6"></i> Lessons
             </button>
+             <button onclick="app.setStudentTab('quests')" id="st-mob-tab-quests" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px]">
+                <i data-lucide="target" class="w-6 h-6"></i> Quests
+            </button>
             <button onclick="app.setStudentTab('rating')" id="st-mob-tab-rating" class="flex flex-col items-center gap-1 p-3 text-slate-400 font-black text-[10px]">
                 <i data-lucide="trophy" class="w-6 h-6"></i> Leaderboard
             </button>
@@ -522,6 +577,18 @@
             <section id="tab-student-lessons">
                 <h2 class="text-3xl md:text-4xl font-black mb-8 text-slate-800 md:block hidden">Lessons</h2>
                 <div id="student-tasks-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6"></div>
+            </section>
+            
+            <!-- STUDENT TAB: QUESTS -->
+            <section id="tab-student-quests" class="hidden">
+                 <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-10 screen-header">
+                    <h2 class="text-3xl md:text-4xl font-black text-slate-800">Quests</h2>
+                    <p class="text-slate-400 font-medium">Daily challenges & Rewards</p>
+                </div>
+                <!-- Quest Grid -->
+                <div id="student-quests-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Daily Quest will be injected here -->
+                </div>
             </section>
 
             <!-- STUDENT TAB: RATING -->
@@ -538,7 +605,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, getDoc, setDoc, Timestamp, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, getDoc, setDoc, Timestamp, query, where, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = JSON.parse('{"apiKey":"AIzaSyA_mptcpENpEsrJYHXBRxb-rlRH_eqI8-E","authDomain":"studento-aa5d2.firebaseapp.com","projectId":"studento-aa5d2","storageBucket":"studento-aa5d2.firebasestorage.app","messagingSenderId":"1078257307837","appId":"1:1078257307837:web:9ea84484c1dfdb129ca7d4"}');
         // Fallback for appId to avoid undefined paths which cause 400 bad request errors
@@ -862,8 +929,8 @@ setTeacherAuthMode: (mode) => {
                       return;
                 }
                 
-                const tabs = ['lessons', 'rating'];
-                const titles = { lessons: 'My Lessons', rating: 'Leaderboard' };
+                const tabs = ['lessons', 'quests', 'rating'];
+                const titles = { lessons: 'My Lessons', quests: 'Quests', rating: 'Leaderboard' };
 
                 const mobileTitle = document.getElementById('mobile-student-title');
                 if (mobileTitle) mobileTitle.textContent = titles[tab];
@@ -898,6 +965,7 @@ setTeacherAuthMode: (mode) => {
 
                 activeStudentTab = tab;
                 if (tab === 'lessons') loadStudentTasks();
+                if (tab === 'quests') loadStudentQuests();
                 if (tab === 'rating') loadStudentLeaderboard();
                 lucide.createIcons();
             },
@@ -970,23 +1038,23 @@ setTeacherAuthMode: (mode) => {
                     
                     const group = groupedTasks.find(g => g.groupId === id);
                     if (group) {
-                         document.getElementById('task-text').value = group.question || '';
-                         document.getElementById('task-answer').value = group.correctAnswer || '';
-                         
-                         // Date to string format for input
-                         if(group.deadline) {
+                          document.getElementById('task-text').value = group.question || '';
+                          document.getElementById('task-answer').value = group.correctAnswer || '';
+                          
+                          // Date to string format for input
+                          if(group.deadline) {
                              const d = group.deadline.toDate();
                              d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
                              document.getElementById('task-deadline').value = d.toISOString().slice(0,16);
-                         }
-                         if(group.publishAt) {
+                          }
+                          if(group.publishAt) {
                              const d = group.publishAt.toDate();
                              d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
                              document.getElementById('task-publish-date').value = d.toISOString().slice(0,16);
-                         }
+                          }
 
-                         // Images
-                         if (group.imageUrls && Array.isArray(group.imageUrls)) {
+                          // Images
+                          if (group.imageUrls && Array.isArray(group.imageUrls)) {
                             currentDraftImages = group.imageUrls;
                         } else if (group.imageUrl) {
                             currentDraftImages = [group.imageUrl];
@@ -1007,7 +1075,7 @@ setTeacherAuthMode: (mode) => {
                         });
                     }
                 } else {
-                     titleEl.textContent = "Task Builder";
+                      titleEl.textContent = "Task Builder";
                 }
                 
                 app.updateAnswerTypeUI();
@@ -1199,7 +1267,13 @@ setTeacherAuthMode: (mode) => {
                 const phrase = document.getElementById('new-phrase').value.trim().toLowerCase();
                 if (!name || phrase.split(/\s+/).length !== 3) return notify("Need name and 3 words", "error");
                 try {
-                    await addDoc(getColPath('students'), { teacherId: auth.currentUser.uid, name, phrase, createdAt: Date.now() });
+                    await addDoc(getColPath('students'), { 
+                        teacherId: auth.currentUser.uid, 
+                        name, 
+                        phrase, 
+                        bonusPoints: 0, // Initialize bonusPoints
+                        createdAt: Date.now() 
+                    });
                     document.getElementById('new-name').value = ''; document.getElementById('new-phrase').value = '';
                     notify("Done", "success");
                     loadMyStudents();
@@ -1401,9 +1475,9 @@ setTeacherAuthMode: (mode) => {
                 }
                 
                 if (hasReaction) {
-                      btnDelete.classList.remove('hidden');
+                        btnDelete.classList.remove('hidden');
                 } else {
-                      btnDelete.classList.add('hidden');
+                        btnDelete.classList.add('hidden');
                 }
                 document.getElementById('modal-emoji').classList.remove('hidden');
             },
@@ -1456,13 +1530,40 @@ setTeacherAuthMode: (mode) => {
                         isTeacher: isTeacher // Teacher flag
                     });
                     
-                    notify("Reaction sent!", "success");
+                    // === DAILY QUEST LOGIC (Student Only) ===
+                    if (!isTeacher && currentStudentData) {
+                        const today = new Date().toISOString().slice(0, 10);
+                        const lastDate = currentStudentData.lastRewardDate;
+                        
+                        if (lastDate !== today) {
+                            // Grant reward
+                            const studentRef = doc(db, 'artifacts', appId, 'public', 'data', 'students', currentStudentId);
+                            const newBonus = (currentStudentData.bonusPoints || 0) + 1;
+                            
+                            // Optimistic update
+                            currentStudentData.bonusPoints = newBonus;
+                            currentStudentData.lastRewardDate = today;
+                            
+                            await updateDoc(studentRef, {
+                                bonusPoints: newBonus,
+                                lastRewardDate: today
+                            });
+                            
+                            notify("Daily Quest Completed! +1 Point 💎", "success");
+                        } else {
+                             notify("Reaction sent!", "success");
+                        }
+                    } else {
+                        notify("Reaction sent!", "success");
+                    }
+                    
                     app.closeEmojiModal();
                     
                     if (isTeacher) {
                         loadTeacherLeaderboard();
                     } else {
-                        loadStudentLeaderboard(); 
+                        if (activeStudentTab === 'quests') loadStudentQuests();
+                        else loadStudentLeaderboard(); 
                     }
                 } catch (e) {
                     console.error(e);
@@ -1492,6 +1593,123 @@ setTeacherAuthMode: (mode) => {
                 }
             },
 
+            // === SUPPORT QUEST LOGIC (UPDATED FOR RANDOM 1-TO-1) ===
+            openSupportModal: async () => {
+                if (!currentStudentId || !currentStudentData) return;
+                
+                // Dropdown removed - no need to load classmates here anymore
+                document.getElementById('support-message-text').value = '';
+                document.getElementById('modal-support-quest').classList.remove('hidden');
+                lucide.createIcons();
+            },
+
+            closeSupportModal: () => {
+                document.getElementById('modal-support-quest').classList.add('hidden');
+            },
+
+            submitSupportQuest: async () => {
+                const text = document.getElementById('support-message-text').value.trim();
+                if (text.length < 5) return notify("Message too short", "error");
+
+                try {
+                    // 1. Get ALL Classmates
+                    const studentsSnap = await getDocs(getColPath('students'));
+                    const classmates = studentsSnap.docs.map(d => ({id: d.id, ...d.data()}))
+                        .filter(s => s.teacherId === currentStudentData.teacherId && s.id !== currentStudentId);
+
+                    // 2. Get ALL Support Messages to see who received one
+                    const msgsSnap = await getDocs(getColPath('support_messages'));
+                    const receivedIds = new Set(msgsSnap.docs.map(d => d.data().toStudentId));
+
+                    // 3. Filter Candidates: Must NOT have received a message yet
+                    const candidates = classmates.filter(s => !receivedIds.has(s.id));
+
+                    let targetId;
+
+                    if (candidates.length > 0) {
+                         // Pick random eligible candidate
+                         const target = candidates[Math.floor(Math.random() * candidates.length)];
+                         targetId = target.id;
+                    } else {
+                        // Fallback: If everyone has received one, pick random from ANY classmate (to avoid blocking)
+                        // Or prevent sending? Let's assume fallback to any random classmate to keep the fun going.
+                        if (classmates.length === 0) return notify("You are alone in class...", "error");
+                        const target = classmates[Math.floor(Math.random() * classmates.length)];
+                        targetId = target.id;
+                    }
+
+                    // 4. Save Message
+                    await addDoc(getColPath('support_messages'), {
+                        fromStudentId: currentStudentId,
+                        fromName: currentStudentData.name, 
+                        toStudentId: targetId,
+                        message: text,
+                        timestamp: Date.now(),
+                        isRead: false
+                    });
+
+                    // 5. Update Student Stats (Bonus)
+                    const today = new Date().toISOString().slice(0, 10);
+                    const newBonus = (currentStudentData.bonusPoints || 0) + 1;
+                    
+                    currentStudentData.bonusPoints = newBonus;
+                    currentStudentData.lastSupportQuestDate = today;
+
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', currentStudentId), {
+                        bonusPoints: newBonus,
+                        lastSupportQuestDate: today
+                    });
+
+                    notify("Random message sent! +1 Point 💎", "success");
+                    app.closeSupportModal();
+                    // Update UI
+                    app.setStudentTab('quests'); 
+
+                } catch (e) {
+                    console.error(e);
+                    notify("Error sending message", "error");
+                }
+            },
+            
+            // === RECEIVE SUPPORT LOGIC (NEW) ===
+            checkIncomingSupport: async () => {
+                if (!currentStudentId) return;
+
+                const q = query(
+                    getColPath('support_messages'),
+                    where('toStudentId', '==', currentStudentId),
+                    where('isRead', '==', false)
+                );
+
+                const snap = await getDocs(q);
+                if (!snap.empty) {
+                    const msgDoc = snap.docs[0]; // Take the first one
+                    const msgData = msgDoc.data();
+                    
+                    document.getElementById('receive-support-text').textContent = msgData.message;
+                    // Store doc ID to mark as read later
+                    window.app.currentSupportMessageId = msgDoc.id;
+                    
+                    document.getElementById('modal-receive-support').classList.remove('hidden');
+                }
+            },
+            
+            acceptSupportMessage: async () => {
+                if (!window.app.currentSupportMessageId) return;
+                
+                try {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'support_messages', window.app.currentSupportMessageId), {
+                        isRead: true
+                    });
+                    document.getElementById('modal-receive-support').classList.add('hidden');
+                    window.app.currentSupportMessageId = null;
+                    notify("Saved to your heart ❤️", "success");
+                } catch(e) {
+                    console.error(e);
+                    document.getElementById('modal-receive-support').classList.add('hidden');
+                }
+            },
+
             studentLogin: async () => {
                 const phrase = document.getElementById('s-phrase').value.trim().toLowerCase();
                 try {
@@ -1506,7 +1724,12 @@ setTeacherAuthMode: (mode) => {
                     document.getElementById('student-name-display').textContent = student.data().name;
                     document.getElementById('student-phrase-display').textContent = student.data().phrase;
                     window.app.showScreen('screen-student-dash');
+                    
                     loadStudentTasks();
+                    
+                    // CHECK FOR INCOMING MESSAGES
+                    setTimeout(app.checkIncomingSupport, 1000);
+                    
                 } catch (e) { notify("Error", "error"); }
             },
 
@@ -1866,9 +2089,6 @@ setTeacherAuthMode: (mode) => {
                     } 
                 }
             });
-
-            // Очищаем контейнер со списком учеников
-            document.getElementById('stats-summary').innerHTML = '';
         }
 
         async function loadTeacherLeaderboard() {
@@ -1886,7 +2106,6 @@ setTeacherAuthMode: (mode) => {
         .map(d => ({id: d.id, ...d.data()}))
         .filter(s => s.teacherId === teacherId);
 
-    // 1. First declaration (KEEP THIS ONE)
     const container = document.getElementById('teacher-rating-list');
 
     if (classmates.length === 0) {
@@ -1901,9 +2120,9 @@ setTeacherAuthMode: (mode) => {
     const allReactions = reactionsSnap.docs
         .map(d => d.data());
 
-    // Calculate scores
+    // Calculate scores (Tasks + Bonus Points)
     const scores = {};
-    classmates.forEach(s => scores[s.id] = 0);
+    classmates.forEach(s => scores[s.id] = (s.bonusPoints || 0)); // Start with bonus points
     allTasks.forEach(t => {
         if (scores[t.studentId] !== undefined) scores[t.studentId] += (t.score || 0);
     });
@@ -1914,9 +2133,6 @@ setTeacherAuthMode: (mode) => {
         name: s.name,
         score: scores[s.id]
     })).sort((a, b) => b.score - a.score);
-
-    // 2. Second declaration REMOVED (The variable 'container' already exists)
-    // const container = document.getElementById('teacher-rating-list');  <-- DELETED THIS LINE
 
     let html = `<div class="bg-white rounded-[2rem] border border-slate-100 p-2">`;
 
@@ -2001,9 +2217,9 @@ setTeacherAuthMode: (mode) => {
             const allReactions = reactionsSnap.docs
                 .map(d => d.data());
 
-            // 3. Calc scores
+            // 3. Calc scores (Tasks + Bonus Points)
             const scores = {};
-            classmates.forEach(s => scores[s.id] = 0);
+            classmates.forEach(s => scores[s.id] = (s.bonusPoints || 0)); // Start with bonus points
             
             allTasks.forEach(t => {
                 if (scores[t.studentId] !== undefined) {
@@ -2124,6 +2340,75 @@ setTeacherAuthMode: (mode) => {
             lucide.createIcons();
         }
 
+        async function loadStudentQuests() {
+            if (!currentStudentId) return;
+
+            const questContainer = document.getElementById('student-quests-list');
+            const today = new Date().toISOString().slice(0, 10);
+            
+            // Проверка для 1-го квеста (Реакции)
+            const isReactionClaimed = currentStudentData.lastRewardDate === today;
+            
+            // Проверка для 2-го квеста (Поддержка)
+            const isSupportClaimed = currentStudentData.lastSupportQuestDate === today;
+
+            // Генерируем HTML для обоих квестов
+            let html = '';
+
+            // --- QUEST 1: Social Butterfly (Существующий) ---
+            html += `
+                <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[2rem] p-8 text-white shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="relative z-10 flex flex-col h-full">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border border-white/10">Daily Quest</span>
+                            ${isReactionClaimed 
+                                ? '<div class="w-8 h-8 bg-emerald-400 rounded-full flex items-center justify-center shadow-lg"><i data-lucide="check" class="w-5 h-5 text-white"></i></div>' 
+                                : '<div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center animate-pulse"><i data-lucide="clock" class="w-5 h-5 text-white"></i></div>'}
+                        </div>
+                        
+                        <h3 class="font-black text-2xl mb-2">Social Butterfly</h3>
+                        <p class="text-indigo-100 font-medium mb-8 leading-relaxed opacity-90">React to a classmate's profile on the Leaderboard.</p>
+                        
+                        <div class="mt-auto">
+                            ${isReactionClaimed 
+                                ? '<button disabled class="w-full bg-white/20 text-white cursor-default px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-2 border border-white/10">Completed <i data-lucide="check-circle" class="w-5 h-5"></i></button>'
+                                : `<button onclick="app.setStudentTab('rating')" class="w-full bg-white text-indigo-600 px-6 py-4 rounded-xl font-bold shadow-lg hover:bg-indigo-50 transition-colors flex items-center justify-center gap-2 group-hover:shadow-indigo-900/20">Go to Leaderboard <i data-lucide="arrow-right" class="w-5 h-5"></i></button>`
+                            }
+                        </div>
+                    </div>
+                    <div class="absolute -right-6 -bottom-6 opacity-20 transform rotate-12 scale-150"><i data-lucide="smile-plus" class="w-48 h-48"></i></div>
+                </div>
+            `;
+
+            // --- QUEST 2: Support Hero (НОВЫЙ) ---
+            html += `
+                <div class="bg-gradient-to-br from-pink-500 to-rose-600 rounded-[2rem] p-8 text-white shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="relative z-10 flex flex-col h-full">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border border-white/10">Daily Quest</span>
+                            ${isSupportClaimed 
+                                ? '<div class="w-8 h-8 bg-emerald-400 rounded-full flex items-center justify-center shadow-lg"><i data-lucide="check" class="w-5 h-5 text-white"></i></div>' 
+                                : '<div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center animate-pulse"><i data-lucide="clock" class="w-5 h-5 text-white"></i></div>'}
+                        </div>
+                        
+                        <h3 class="font-black text-2xl mb-2">Support Hero</h3>
+                        <p class="text-pink-100 font-medium mb-8 leading-relaxed opacity-90">Write a kind message to support your classmate.</p>
+                        
+                        <div class="mt-auto">
+                            ${isSupportClaimed 
+                                ? '<button disabled class="w-full bg-white/20 text-white cursor-default px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-2 border border-white/10">Completed <i data-lucide="check-circle" class="w-5 h-5"></i></button>'
+                                : `<button onclick="app.openSupportModal()" class="w-full bg-white text-pink-600 px-6 py-4 rounded-xl font-bold shadow-lg hover:bg-pink-50 transition-colors flex items-center justify-center gap-2 group-hover:shadow-pink-900/20">Write Message <i data-lucide="pen-tool" class="w-5 h-5"></i></button>`
+                            }
+                        </div>
+                    </div>
+                    <div class="absolute -right-6 -bottom-6 opacity-20 transform rotate-12 scale-150"><i data-lucide="heart-handshake" class="w-48 h-48"></i></div>
+                </div>
+            `;
+
+            questContainer.innerHTML = html;
+            lucide.createIcons();
+        }
+
         async function loadStudentTasks() {
             if (!currentStudentId) return;
             
@@ -2134,13 +2419,15 @@ setTeacherAuthMode: (mode) => {
 
             tasks.sort((a, b) => b.createdAt - a.createdAt);
 
-            const totalScore = tasks.reduce((acc, t) => acc + (t.score || 0), 0);
-            document.getElementById('student-total-score').textContent = totalScore;
+            // Calculate total score including bonus points
+            const taskScore = tasks.reduce((acc, t) => acc + (t.score || 0), 0);
+            const bonus = currentStudentData.bonusPoints || 0;
+            document.getElementById('student-total-score').textContent = taskScore + bonus;
             
             const list = document.getElementById('student-tasks-list');
             
             if (tasks.length === 0) {
-                list.innerHTML = '<div class="col-span-full text-center text-slate-400 py-20 font-bold">No tasks</div>';
+                list.innerHTML = '<div class="col-span-full text-center text-slate-400 py-20 font-bold">No tasks yet</div>';
                 return;
             }
 
@@ -2256,6 +2543,9 @@ setTeacherAuthMode: (mode) => {
                                 document.getElementById('student-phrase-display').textContent = currentStudentData.phrase;
                                 window.app.showScreen('screen-student-dash');
                                 loadStudentTasks();
+
+                                // CHECK FOR INCOMING MESSAGES
+                                setTimeout(app.checkIncomingSupport, 1000);
                             }
                         } catch(e) { console.error("Auto-login error", e); }
                     }

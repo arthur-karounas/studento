@@ -2307,152 +2307,150 @@ function getReactionHTML(r) {
 }
 
         async function loadStudentLeaderboard() {
-            if (!currentStudentData || !currentStudentId) return;
+    if (!currentStudentData || !currentStudentId) return;
 
-            // 1. Get teacher ID
-            const teacherId = currentStudentData.teacherId;
+    // 1. Get teacher ID
+    const teacherId = currentStudentData.teacherId;
 
-            // 2. Load data
-            const [studentsSnap, tasksSnap, reactionsSnap] = await Promise.all([ 
-                getDocs(getColPath('students')), 
-                getDocs(getColPath('tasks')),
-                getDocs(getColPath('reactions'))
-            ]);
+    // 2. Load data
+    const [studentsSnap, tasksSnap, reactionsSnap] = await Promise.all([
+        getDocs(getColPath('students')),
+        getDocs(getColPath('tasks')),
+        getDocs(getColPath('reactions'))
+    ]);
 
-            const classmates = studentsSnap.docs
-                .map(d => ({id: d.id, ...d.data()}))
-                .filter(s => s.teacherId === teacherId);
+    const classmates = studentsSnap.docs
+        .map(d => ({id: d.id, ...d.data()}))
+        .filter(s => s.teacherId === teacherId);
 
-            const allTasks = tasksSnap.docs
-                .map(d => d.data())
-                .filter(t => t.teacherId === teacherId);
-                
-            const allReactions = reactionsSnap.docs
-                .map(d => d.data());
+    const allTasks = tasksSnap.docs
+        .map(d => d.data())
+        .filter(t => t.teacherId === teacherId);
+        
+    const allReactions = reactionsSnap.docs
+        .map(d => d.data());
 
-            // 3. Calc scores (Tasks + Bonus Points)
-            const scores = {};
-            classmates.forEach(s => scores[s.id] = (s.bonusPoints || 0)); // Start with bonus points
-            
-            allTasks.forEach(t => {
-                if (scores[t.studentId] !== undefined) {
-                    scores[t.studentId] += (t.score || 0);
-                }
-            });
+    // 3. Calc scores (Tasks + Bonus Points)
+    const scores = {};
+    classmates.forEach(s => scores[s.id] = (s.bonusPoints || 0)); 
+    
+    allTasks.forEach(t => {
+        if (scores[t.studentId] !== undefined) {
+            scores[t.studentId] += (t.score || 0);
+        }
+    });
 
-            // 4. Sort
-            const leaderboard = classmates.map(s => ({
-                id: s.id,
-                name: s.id === currentStudentId ? "You" : "Student", 
-                realName: s.name, 
-                score: scores[s.id]
-            })).sort((a, b) => b.score - a.score);
+    // 4. Sort
+    const leaderboard = classmates.map(s => ({
+        id: s.id,
+        name: s.id === currentStudentId ? "You" : "Student", 
+        realName: s.name, 
+        score: scores[s.id]
+    })).sort((a, b) => b.score - a.score);
 
-            // 5. Render
-            const container = document.getElementById('student-rating-list');
-            const myRankIndex = leaderboard.findIndex(x => x.id === currentStudentId);
-            const myData = leaderboard[myRankIndex];
+    // 5. Render
+    const container = document.getElementById('student-rating-list');
+    const myRankIndex = leaderboard.findIndex(x => x.id === currentStudentId);
+    
+    // Если ученика нет в списке (на всякий случай)
+    if (myRankIndex === -1) {
+        container.innerHTML = '<div class="text-center text-slate-400">You are not on the list yet.</div>';
+        return;
+    }
 
-            // Find closest competitor above
-            const nextTarget = leaderboard[myRankIndex - 1];
-            
-            // Motivation phrase
-            let motivationText = "";
-            
-            if (myRankIndex === 0) {
-                 motivationText = "You're at the top! Keep it up! 👑🔥";
-            } else {
-                 const phrases = ["You're close, push it! 🚀", "Onwards to the summit! 🏔️", "A little more effort! 💪", "You're doing great! 🔥", "The goal is near! 🎯"];
-                 motivationText = phrases[Math.floor(Math.random() * phrases.length)];
-            }
+    const myData = leaderboard[myRankIndex];
 
-            let html = '';
+    // --- ИСПРАВЛЕНИЕ: Предварительная подготовка данных для верхней карточки ---
+    const myRank = myRankIndex + 1;
+    let myIconColor = 'bg-slate-100 text-slate-500';
+    let myIconContent = myRank;
+    
+    if (myRank === 1) { myIconColor = 'bg-yellow-100 text-yellow-600'; myIconContent = '<i data-lucide="trophy" class="w-4 h-4"></i>'; }
+    else if (myRank === 2) { myIconColor = 'bg-slate-200 text-slate-600'; myIconContent = '2'; }
+    else if (myRank === 3) { myIconColor = 'bg-amber-100 text-amber-700'; myIconContent = '3'; }
 
-            // Card "Your Result"
-            html += `
-    <div class="flex items-center gap-4 p-4 rounded-2xl ${isMe ? 'bg-blue-50 border border-blue-100' : ''}">
-        <div class="w-10 h-10 rounded-full ${iconColor} flex items-center justify-center font-black text-sm shrink-0">
-            ${iconContent}
+    // Реакции для меня
+    const myReceivedReactions = allReactions.filter(r => r.toStudentId === myData.id);
+    
+    let html = '';
+
+    // Card "Your Result" (ТЕПЕРЬ ИСПОЛЬЗУЕМ ПРАВИЛЬНЫЕ ПЕРЕМЕННЫЕ)
+    html += `
+    <div class="flex items-center gap-4 p-4 rounded-2xl bg-blue-50 border border-blue-100 mb-6 shadow-sm">
+        <div class="w-10 h-10 rounded-full ${myIconColor} flex items-center justify-center font-black text-sm shrink-0">
+            ${myIconContent}
         </div>
         <div class="flex-grow min-w-0">
-            <div class="font-bold ${isMe ? 'text-blue-700' : 'text-slate-700'} text-lg truncate">
-                ${user.name} ${isMe ? '(You)' : ''}
+            <div class="font-bold text-blue-700 text-lg truncate">
+                ${myData.realName} (You)
             </div>
             
             <div class="flex flex-wrap gap-1 mt-1 items-center">
-                ${receivedReactions.map(r => getReactionHTML(r)).join('')}
-                
-                ${!isMe ? `
-                    <button onclick="app.openEmojiModal('${user.id}', ${!!myReactionToHim})" class="ml-1 w-6 h-6 rounded-full bg-slate-100 hover:bg-blue-100 text-slate-400 hover:text-blue-500 flex items-center justify-center transition-all ${myReactionToHim ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-200' : ''}">
-                            <i data-lucide="${myReactionToHim ? 'pencil' : 'smile-plus'}" class="w-3 h-3"></i>
-                    </button>
-                ` : ''}
+                ${myReceivedReactions.map(r => getReactionHTML(r)).join('')}
             </div>
         </div>
-        <div class="font-black text-xl ${isMe ? 'text-blue-600' : 'text-slate-800'}">${user.score}</div>
+        <div class="font-black text-xl text-blue-600">${myData.score}</div>
     </div>
-    ${index < leaderboard.length - 1 ? '<div class="h-px bg-slate-50 mx-4"></div>' : ''}
-`;
+    
+    <div class="bg-white rounded-[2rem] border border-slate-100 p-2">
+    `;
 
-            // Leaderboard list
-            html += `<div class="bg-white rounded-[2rem] border border-slate-100 p-2">`;
-            
-            leaderboard.forEach((user, index) => {
-                const rank = index + 1;
-                const isMe = user.id === currentStudentId;
-                
-                // Filter reactions FOR this user
-                const receivedReactions = allReactions.filter(r => r.toStudentId === user.id);
-                
-                // Check if I reacted
-                const myReactionToHim = receivedReactions.find(r => r.fromStudentId === currentStudentId);
-                
-                let iconColor = 'bg-slate-100 text-slate-500';
-                let iconContent = rank;
-                if (rank === 1) { iconColor = 'bg-yellow-100 text-yellow-600'; iconContent = '<i data-lucide="trophy" class="w-4 h-4"></i>'; }
-                if (rank === 2) { iconColor = 'bg-slate-200 text-slate-600'; iconContent = '2'; }
-                if (rank === 3) { iconColor = 'bg-amber-100 text-amber-700'; iconContent = '3'; }
+    // Leaderboard list
+    leaderboard.forEach((user, index) => {
+        const rank = index + 1;
+        const isMe = user.id === currentStudentId;
+        
+        // Filter reactions FOR this user
+        const receivedReactions = allReactions.filter(r => r.toStudentId === user.id);
+        
+        // Check if I reacted
+        const myReactionToHim = receivedReactions.find(r => r.fromStudentId === currentStudentId);
+        
+        let iconColor = 'bg-slate-100 text-slate-500';
+        let iconContent = rank;
+        if (rank === 1) { iconColor = 'bg-yellow-100 text-yellow-600'; iconContent = '<i data-lucide="trophy" class="w-4 h-4"></i>'; }
+        else if (rank === 2) { iconColor = 'bg-slate-200 text-slate-600'; iconContent = '2'; }
+        else if (rank === 3) { iconColor = 'bg-amber-100 text-amber-700'; iconContent = '3'; }
 
-                html += `
-                    <div class="flex items-center gap-4 p-4 rounded-2xl ${isMe ? 'bg-blue-50 border border-blue-100' : ''}">
-                        <div class="w-10 h-10 rounded-full ${iconColor} flex items-center justify-center font-black text-sm shrink-0">
-                            ${iconContent}
-                        </div>
-                        <div class="flex-grow min-w-0">
-                            <div class="font-bold ${isMe ? 'text-blue-700' : 'text-slate-700'} text-lg truncate">
-                                ${user.name} ${isMe ? '(You)' : ''}
-                            </div>
-                            
-                            <!-- Emojis Container -->
-                            <div class="flex flex-wrap gap-1 mt-1">
-                                ${receivedReactions.map(r => {
-                                    if (r.isTeacher) {
-                                        return `
-                                            <div class="emoji-pop relative group cursor-help inline-flex items-center gap-1 mx-0.5 bg-indigo-600 text-white rounded-full px-2 py-0.5 shadow-md" title="Teacher's reaction">
-                                                <span class="text-[9px] font-black uppercase tracking-wider">TEACHER</span>
-                                                <span class="text-sm border-l border-white/30 pl-1 ml-0.5">${r.emoji}</span>
-                                            </div>`;
-                                    }
-                                    return `<span class="emoji-pop text-sm cursor-help relative rounded-full px-1 hover:bg-slate-100 transition-colors" title="Anonymous">${r.emoji}</span>`;
-                                }).join('')}
-                                
-                                ${!isMe ? `
-                                    <button onclick="app.openEmojiModal('${user.id}', ${!!myReactionToHim})" class="ml-1 w-6 h-6 rounded-full bg-slate-100 hover:bg-blue-100 text-slate-400 hover:text-blue-500 flex items-center justify-center transition-all ${myReactionToHim ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-200' : ''}">
-                                            <i data-lucide="${myReactionToHim ? 'pencil' : 'smile-plus'}" class="w-3 h-3"></i>
-                                    </button>
-                                ` : ''}
-                            </div>
-                        </div>
-                        <div class="font-black text-xl ${isMe ? 'text-blue-600' : 'text-slate-800'}">${user.score}</div>
+        html += `
+            <div class="flex items-center gap-4 p-4 rounded-2xl ${isMe ? 'bg-blue-50/50 border border-blue-100/50' : ''}">
+                <div class="w-10 h-10 rounded-full ${iconColor} flex items-center justify-center font-black text-sm shrink-0">
+                    ${iconContent}
+                </div>
+                <div class="flex-grow min-w-0">
+                    <div class="font-bold ${isMe ? 'text-blue-700' : 'text-slate-700'} text-lg truncate">
+                        ${user.name} ${isMe ? '(You)' : ''}
                     </div>
-                    ${index < leaderboard.length - 1 ? '<div class="h-px bg-slate-50 mx-4"></div>' : ''}
-                `;
-            });
+                    
+                    <div class="flex flex-wrap gap-1 mt-1">
+                        ${receivedReactions.map(r => {
+                            if (r.isTeacher) {
+                                return `
+                                    <div class="emoji-pop relative group cursor-help inline-flex items-center gap-1 mx-0.5 bg-indigo-600 text-white rounded-full px-2 py-0.5 shadow-md" title="Teacher's reaction">
+                                        <span class="text-[9px] font-black uppercase tracking-wider">TEACHER</span>
+                                        <span class="text-sm border-l border-white/30 pl-1 ml-0.5">${r.emoji}</span>
+                                    </div>`;
+                            }
+                            return `<span class="emoji-pop text-sm cursor-help relative rounded-full px-1 hover:bg-slate-100 transition-colors" title="Anonymous">${r.emoji}</span>`;
+                        }).join('')}
+                        
+                        ${!isMe ? `
+                            <button onclick="app.openEmojiModal('${user.id}', ${!!myReactionToHim})" class="ml-1 w-6 h-6 rounded-full bg-slate-100 hover:bg-blue-100 text-slate-400 hover:text-blue-500 flex items-center justify-center transition-all ${myReactionToHim ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-200' : ''}">
+                                    <i data-lucide="${myReactionToHim ? 'pencil' : 'smile-plus'}" class="w-3 h-3"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="font-black text-xl ${isMe ? 'text-blue-600' : 'text-slate-800'}">${user.score}</div>
+            </div>
+            ${index < leaderboard.length - 1 ? '<div class="h-px bg-slate-50 mx-4"></div>' : ''}
+        `;
+    });
 
-            html += `</div>`;
-            container.innerHTML = html;
-            lucide.createIcons();
-        }
+    html += `</div>`;
+    container.innerHTML = html;
+    lucide.createIcons();
+}
 
         async function loadStudentQuests() {
             if (!currentStudentId) return;

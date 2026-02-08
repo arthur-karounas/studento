@@ -2330,7 +2330,7 @@ function getReactionHTML(r) {
     const allReactions = reactionsSnap.docs
         .map(d => d.data());
 
-    // 3. Calc scores (Tasks + Bonus Points)
+    // 3. Calc scores
     const scores = {};
     classmates.forEach(s => scores[s.id] = (s.bonusPoints || 0)); 
     
@@ -2352,7 +2352,6 @@ function getReactionHTML(r) {
     const container = document.getElementById('student-rating-list');
     const myRankIndex = leaderboard.findIndex(x => x.id === currentStudentId);
     
-    // Если ученика нет в списке (на всякий случай)
     if (myRankIndex === -1) {
         container.innerHTML = '<div class="text-center text-slate-400">You are not on the list yet.</div>';
         return;
@@ -2360,7 +2359,7 @@ function getReactionHTML(r) {
 
     const myData = leaderboard[myRankIndex];
 
-    // --- ИСПРАВЛЕНИЕ: Предварительная подготовка данных для верхней карточки ---
+    // Подготовка данных для верхней карточки (Your Result)
     const myRank = myRankIndex + 1;
     let myIconColor = 'bg-slate-100 text-slate-500';
     let myIconContent = myRank;
@@ -2374,36 +2373,16 @@ function getReactionHTML(r) {
     
     let html = '';
 
-    // Card "Your Result" (ТЕПЕРЬ ИСПОЛЬЗУЕМ ПРАВИЛЬНЫЕ ПЕРЕМЕННЫЕ)
-    html += `
-    <div class="flex items-center gap-4 p-4 rounded-2xl bg-blue-50 border border-blue-100 mb-6 shadow-sm">
-        <div class="w-10 h-10 rounded-full ${myIconColor} flex items-center justify-center font-black text-sm shrink-0">
-            ${myIconContent}
-        </div>
-        <div class="flex-grow min-w-0">
-            <div class="font-bold text-blue-700 text-lg truncate">
-                ${myData.realName} (You)
-            </div>
-            
-            <div class="flex flex-wrap gap-1 mt-1 items-center">
-                ${myReceivedReactions.map(r => getReactionHTML(r)).join('')}
-            </div>
-        </div>
-        <div class="font-black text-xl text-blue-600">${myData.score}</div>
-    </div>
-    
-    <div class="bg-white rounded-[2rem] border border-slate-100 p-2">
-    `;
 
-    // Leaderboard list
+    // --- СПИСОК: Leaderboard ---
     leaderboard.forEach((user, index) => {
         const rank = index + 1;
         const isMe = user.id === currentStudentId;
         
-        // Filter reactions FOR this user
+        // Реакции, полученные этим пользователем
         const receivedReactions = allReactions.filter(r => r.toStudentId === user.id);
         
-        // Check if I reacted
+        // Проверяем, ставил ли Я реакцию этому пользователю
         const myReactionToHim = receivedReactions.find(r => r.fromStudentId === currentStudentId);
         
         let iconColor = 'bg-slate-100 text-slate-500';
@@ -2423,16 +2402,7 @@ function getReactionHTML(r) {
                     </div>
                     
                     <div class="flex flex-wrap gap-1 mt-1">
-                        ${receivedReactions.map(r => {
-                            if (r.isTeacher) {
-                                return `
-                                    <div class="emoji-pop relative group cursor-help inline-flex items-center gap-1 mx-0.5 bg-indigo-600 text-white rounded-full px-2 py-0.5 shadow-md" title="Teacher's reaction">
-                                        <span class="text-[9px] font-black uppercase tracking-wider">TEACHER</span>
-                                        <span class="text-sm border-l border-white/30 pl-1 ml-0.5">${r.emoji}</span>
-                                    </div>`;
-                            }
-                            return `<span class="emoji-pop text-sm cursor-help relative rounded-full px-1 hover:bg-slate-100 transition-colors" title="Anonymous">${r.emoji}</span>`;
-                        }).join('')}
+                        ${receivedReactions.map(r => getReactionHTML(r)).join('')}
                         
                         ${!isMe ? `
                             <button onclick="app.openEmojiModal('${user.id}', ${!!myReactionToHim})" class="ml-1 w-6 h-6 rounded-full bg-slate-100 hover:bg-blue-100 text-slate-400 hover:text-blue-500 flex items-center justify-center transition-all ${myReactionToHim ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-200' : ''}">

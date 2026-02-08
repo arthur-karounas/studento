@@ -348,7 +348,7 @@
                     <i data-lucide="clipboard-list" class="w-5 h-5"></i> Tasks
                 </button>
                 <button onclick="app.setTeacherTab('rating')" id="tab-btn-rating" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all font-bold text-slate-400 hover:bg-slate-50">
-                    <i data-lucide="trophy" class="w-5 h-5"></i> Leaderboard
+                    <i data-lucide="trophy" class="w-5 h-5"></i> Progress
                 </button>
             </nav>
             <button onclick="app.logout()" class="mt-auto flex items-center gap-4 px-6 py-4 rounded-2xl text-rose-500 font-bold hover:bg-rose-50 transition-colors">
@@ -500,16 +500,35 @@
           <section id="tab-rating" class="hidden">
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 md:mb-10 screen-header">
         <div>
-            <h2 class="text-3xl md:text-4xl font-black text-slate-800">Leaderboard</h2>
+            <h2 class="text-3xl md:text-4xl font-black text-slate-800">Progress</h2>
             <p class="text-slate-400 font-medium">Hall of Fame & Stats</p>
         </div>
     </div>
 
-    <div class="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-slate-100 mb-2">
+    <!-- NEW LAYOUT: GRID FOR LEADERBOARD AND ACTIVITY -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-stretch">
         
-        <h3 class="font-bold text-slate-800 text-lg mb-6">Top Students</h3>
-        
-        <div id="teacher-rating-list" class="[&>div]:!border-0 [&>div]:!shadow-none [&>div]:!bg-transparent [&>div]:!p-0"></div>
+        <!-- Left: Leaderboard (2/3) -->
+        <div class="lg:col-span-2 bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 shadow-sm border border-slate-100 min-h-[500px]">
+            <h3 class="font-bold text-slate-800 text-lg mb-6 flex items-center gap-2">
+                <i data-lucide="trophy" class="w-5 h-5 text-indigo-500"></i> Top Students
+            </h3>
+            <div id="teacher-rating-list" class="[&>div]:!border-0 [&>div]:!shadow-none [&>div]:!bg-transparent [&>div]:!p-0 space-y-2"></div>
+        </div>
+
+        <!-- Right: Activity Widget Wrapper (1/3) -->
+        <div class="lg:col-span-1 relative h-[500px] lg:h-auto">
+            <!-- The Card acts as absolute overlay on desktop to match height, and standard flex block on mobile -->
+            <div class="absolute inset-0 bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 shadow-sm border border-slate-100 flex flex-col">
+                <h3 class="font-bold text-slate-800 text-lg mb-4 flex items-center gap-2 shrink-0">
+                    <i data-lucide="activity" class="w-5 h-5 text-indigo-500"></i> Live Activity
+                </h3>
+                <div id="teacher-activity-list" class="flex-grow overflow-y-auto pr-2 space-y-4 custom-scrollbar">
+                    <!-- Activity Items will be injected here -->
+                    <div class="text-center text-slate-400 text-sm py-10">Loading activity...</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="quick-stats" class="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8"></div>
@@ -743,6 +762,20 @@
             if (!inputDate) return "";
             const d = new Date(inputDate);
             return d.toLocaleString('en-US', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        };
+        
+        const formatRelativeTime = (timestamp) => {
+            const now = Date.now();
+            const diff = now - timestamp;
+            const minutes = Math.floor(diff / 60000);
+            
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes}m ago`;
+            
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            
+            return new Date(timestamp).toLocaleDateString();
         };
 
         const notify = (text, type = 'info') => {
@@ -1985,7 +2018,7 @@ function renderTaskBoard() {
                 </div>
 
                 <div id="task-body-${g.groupId}" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out bg-slate-50">
-                     <div class="p-6 border-t border-slate-100">
+                      <div class="p-6 border-t border-slate-100">
                         <div class="text-slate-800 font-bold text-lg mb-6 whitespace-pre-wrap leading-relaxed border-b border-slate-200 pb-4">${g.question}</div>
                         
                          <div class="grid grid-cols-1 gap-4 mb-6">
@@ -2163,96 +2196,163 @@ function getReactionHTML(r) {
     `;
 }
 
-        async function loadTeacherLeaderboard() {
+    async function loadTeacherLeaderboard() {
     if (!auth.currentUser) return;
     const teacherId = auth.currentUser.uid;
 
-    // Load data
-    const [studentsSnap, tasksSnap, reactionsSnap] = await Promise.all([
+    // Load data including MESSAGES now
+    const [studentsSnap, tasksSnap, reactionsSnap, messagesSnap] = await Promise.all([
         getDocs(getColPath('students')),
         getDocs(getColPath('tasks')),
-        getDocs(getColPath('reactions'))
+        getDocs(getColPath('reactions')),
+        getDocs(getColPath('support_messages'))
     ]);
 
     const classmates = studentsSnap.docs
         .map(d => ({id: d.id, ...d.data()}))
         .filter(s => s.teacherId === teacherId);
+        
+    // Create a map for easy name lookup
+    const studentsMap = {};
+    classmates.forEach(s => studentsMap[s.id] = s.name);
+    studentsMap[teacherId] = "Teacher"; // Just in case
 
     const container = document.getElementById('teacher-rating-list');
 
+    // === 1. RENDER LEADERBOARD ===
     if (classmates.length === 0) {
         container.innerHTML = '<div class="text-center text-slate-300 py-20 font-bold italic">Class is empty</div>';
-        return;
+    } else {
+        const allTasks = tasksSnap.docs.map(d => d.data()).filter(t => t.teacherId === teacherId);
+        const allReactions = reactionsSnap.docs.map(d => d.data());
+
+        // Calculate scores
+        const scores = {};
+        classmates.forEach(s => scores[s.id] = (s.bonusPoints || 0)); 
+        allTasks.forEach(t => {
+            if (scores[t.studentId] !== undefined) scores[t.studentId] += (t.score || 0);
+        });
+
+        // Sort
+        const leaderboard = classmates.map(s => ({
+            id: s.id,
+            name: s.name,
+            score: scores[s.id]
+        })).sort((a, b) => b.score - a.score);
+
+        let html = `<div class="bg-white rounded-[2rem] border border-slate-100 p-2">`;
+
+        leaderboard.forEach((user, index) => {
+            const rank = index + 1;
+            const receivedReactions = allReactions.filter(r => r.toStudentId === user.id);
+            const myReactionToHim = receivedReactions.find(r => r.fromStudentId === teacherId);
+
+            let iconColor = 'bg-slate-100 text-slate-500';
+            let iconContent = rank;
+            if (rank === 1) { iconColor = 'bg-yellow-100 text-yellow-600'; iconContent = '<i data-lucide="trophy" class="w-4 h-4"></i>'; }
+            else if (rank === 2) { iconColor = 'bg-slate-200 text-slate-600'; iconContent = '2'; }
+            else if (rank === 3) { iconColor = 'bg-amber-100 text-amber-700'; iconContent = '3'; }
+
+            html += `
+        <div class="flex items-center gap-4 p-4 rounded-2xl">
+            <div class="w-10 h-10 rounded-full ${iconColor} flex items-center justify-center font-black text-sm shrink-0">
+                ${iconContent}
+            </div>
+            <div class="flex-grow min-w-0">
+                <div class="font-bold text-slate-700 text-lg truncate">${user.name}</div>
+                
+                <div class="flex flex-wrap gap-1 mt-1 items-center">
+                    ${receivedReactions.map(r => getReactionHTML(r)).join('')}
+                    
+                    <button onclick="app.openEmojiModal('${user.id}', ${!!myReactionToHim})" class="ml-1 w-6 h-6 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-400 hover:text-indigo-500 flex items-center justify-center transition-all ${myReactionToHim ? 'bg-indigo-100 text-indigo-600 ring-2 ring-indigo-200' : ''}">
+                        <i data-lucide="${myReactionToHim ? 'pencil' : 'smile-plus'}" class="w-3 h-3"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="font-black text-xl text-slate-800">${user.score}</div>
+        </div>
+        ${index < leaderboard.length - 1 ? '<div class="h-px bg-slate-50 mx-4"></div>' : ''}
+    `;
+        });
+
+        html += `</div>`;
+        container.innerHTML = html;
     }
 
-    const allTasks = tasksSnap.docs
-        .map(d => d.data())
-        .filter(t => t.teacherId === teacherId);
+    // === 2. RENDER ACTIVITY WIDGET ===
+    const activityContainer = document.getElementById('teacher-activity-list');
+    
+    // Process Reactions
+    const reactions = reactionsSnap.docs.map(d => {
+        const data = d.data();
+        return {
+            type: 'reaction',
+            fromId: data.fromStudentId,
+            toId: data.toStudentId,
+            content: data.emoji,
+            timestamp: data.timestamp,
+            isTeacher: data.isTeacher
+        };
+    }).filter(r => (studentsMap[r.toId] && (studentsMap[r.fromId] || r.isTeacher))); // Ensure valid participants
 
-    const allReactions = reactionsSnap.docs
-        .map(d => d.data());
+    // Process Messages
+    const messages = messagesSnap.docs.map(d => {
+        const data = d.data();
+        return {
+            type: 'message',
+            fromId: data.fromStudentId,
+            toId: data.toStudentId,
+            content: data.message,
+            timestamp: data.timestamp
+        };
+    }).filter(m => (studentsMap[m.toId] && studentsMap[m.fromId]));
 
-    // Calculate scores (Tasks + Bonus Points)
-    const scores = {};
-    classmates.forEach(s => scores[s.id] = (s.bonusPoints || 0)); // Start with bonus points
-    allTasks.forEach(t => {
-        if (scores[t.studentId] !== undefined) scores[t.studentId] += (t.score || 0);
-    });
-
-    // Sort
-    const leaderboard = classmates.map(s => ({
-        id: s.id,
-        name: s.name,
-        score: scores[s.id]
-    })).sort((a, b) => b.score - a.score);
-
-    let html = `<div class="bg-white rounded-[2rem] border border-slate-100 p-2">`;
-
-    leaderboard.forEach((user, index) => {
-        const rank = index + 1;
-
-        const receivedReactions = allReactions.filter(r => r.toStudentId === user.id);
-        const myReactionToHim = receivedReactions.find(r => r.fromStudentId === teacherId);
-
-        let iconColor = 'bg-slate-100 text-slate-500';
-        let iconContent = rank;
-        if (rank === 1) {
-            iconColor = 'bg-yellow-100 text-yellow-600';
-            iconContent = '<i data-lucide="trophy" class="w-4 h-4"></i>';
-        }
-        if (rank === 2) {
-            iconColor = 'bg-slate-200 text-slate-600';
-            iconContent = '2';
-        }
-        if (rank === 3) {
-            iconColor = 'bg-amber-100 text-amber-700';
-            iconContent = '3';
-        }
-
-        html += `
-    <div class="flex items-center gap-4 p-4 rounded-2xl">
-        <div class="w-10 h-10 rounded-full ${iconColor} flex items-center justify-center font-black text-sm shrink-0">
-            ${iconContent}
-        </div>
-        <div class="flex-grow min-w-0">
-            <div class="font-bold text-slate-700 text-lg truncate">${user.name}</div>
+    // Combine and Sort
+    const activities = [...reactions, ...messages].sort((a, b) => b.timestamp - a.timestamp);
+    
+    if (activities.length === 0) {
+        activityContainer.innerHTML = '<div class="text-center text-slate-300 py-10 font-medium">No recent activity</div>';
+    } else {
+        let activityHtml = '';
+        activities.forEach(item => {
+            const fromName = item.isTeacher ? 'Teacher' : (studentsMap[item.fromId] || 'Unknown');
+            const toName = studentsMap[item.toId] || 'Unknown';
+            const timeStr = formatRelativeTime(item.timestamp);
             
-            <div class="flex flex-wrap gap-1 mt-1 items-center">
-                ${receivedReactions.map(r => getReactionHTML(r)).join('')}
-                
-                <button onclick="app.openEmojiModal('${user.id}', ${!!myReactionToHim})" class="ml-1 w-6 h-6 rounded-full bg-slate-100 hover:bg-indigo-100 text-slate-400 hover:text-indigo-500 flex items-center justify-center transition-all ${myReactionToHim ? 'bg-indigo-100 text-indigo-600 ring-2 ring-indigo-200' : ''}">
-                    <i data-lucide="${myReactionToHim ? 'pencil' : 'smile-plus'}" class="w-3 h-3"></i>
-                </button>
-            </div>
-        </div>
-        <div class="font-black text-xl text-slate-800">${user.score}</div>
-    </div>
-    ${index < leaderboard.length - 1 ? '<div class="h-px bg-slate-50 mx-4"></div>' : ''}
-`;
-    });
-
-    html += `</div>`;
-    container.innerHTML = html;
+            if (item.type === 'reaction') {
+                activityHtml += `
+                    <div class="flex gap-3 items-start p-3 bg-slate-50/50 rounded-2xl border border-slate-50 hover:bg-slate-50 transition-colors">
+                        <div class="w-8 h-8 rounded-full bg-white border border-slate-100 flex items-center justify-center shrink-0 shadow-sm text-lg">
+                            ${item.content}
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-sm text-slate-600 leading-snug">
+                                <span class="font-bold text-slate-800">${fromName}</span> sent emoji to <span class="font-bold text-slate-800">${toName}</span>
+                            </p>
+                            <div class="text-[10px] text-slate-400 font-bold mt-1">${timeStr}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                activityHtml += `
+                    <div class="flex gap-3 items-start p-3 bg-pink-50/30 rounded-2xl border border-pink-50 hover:bg-pink-50/60 transition-colors">
+                        <div class="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center shrink-0 shadow-sm text-pink-500">
+                            <i data-lucide="heart" class="w-4 h-4 fill-current"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-sm text-slate-600 leading-snug">
+                                <span class="font-bold text-slate-800">${fromName}</span> wished <span class="font-bold text-slate-800">${toName}</span>
+                            </p>
+                            <div class="text-xs text-slate-500 italic mt-1 line-clamp-2">"${item.content}"</div>
+                            <div class="text-[10px] text-slate-400 font-bold mt-1">${timeStr}</div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        activityContainer.innerHTML = activityHtml;
+    }
+    
     lucide.createIcons();
 }
 
@@ -2524,7 +2624,7 @@ function getReactionHTML(r) {
                 </div>
                 
                 <div id="st-body-${t.id}" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out bg-slate-50">
-                     <div class="p-6 border-t border-slate-100">
+                      <div class="p-6 border-t border-slate-100">
 
                         <div class="text-slate-800 font-bold text-lg mb-6 whitespace-pre-wrap leading-relaxed border-b border-slate-200 pb-4">${t.question}</div>
                         
@@ -2547,7 +2647,7 @@ function getReactionHTML(r) {
                                 </button>
                            </div>
                            `}
-                     </div>
+                      </div>
                 </div>
             </div>
         `;
